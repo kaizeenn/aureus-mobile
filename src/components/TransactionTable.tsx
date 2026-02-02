@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Table, 
   TableBody, 
@@ -10,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Trash2, TrendingUp, TrendingDown } from 'lucide-react';
+import { X, ArrowUp, ArrowDown } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
 
 interface TransactionTableProps {
@@ -62,69 +61,76 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   };
 
   return (
-    <Card className="bg-card border-border shadow-sm">
-      <CardHeader className="pb-4">
+    <div className="neumorphic-card bg-background  p-4 sm:p-6 transition-smooth">
+      <div className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <CardTitle className="flex items-center gap-3 text-foreground">
+          <h3 className="flex items-center gap-3 text-foreground text-lg sm:text-xl font-bold">
             {showIncome ? (
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <ArrowUp className="h-5 w-5 text-success" />
             ) : (
-              <TrendingDown className="h-5 w-5 text-red-600" />
+              <ArrowDown className="h-5 w-5 text-destructive" />
             )}
             {showIncome ? 'Tabel Pemasukan' : 'Tabel Pengeluaran'}
-          </CardTitle>
+          </h3>
           
           {/* Enhanced Mobile-Friendly Toggle Switch */}
-          <div className="flex items-center justify-center gap-3 bg-muted p-2 rounded-lg">
+          <div className="flex items-center justify-center gap-3 neumorphic-inset  p-2">
             <span className={`text-xs sm:text-sm font-medium transition-all duration-300 ${
-              showIncome ? 'text-green-600 scale-110' : 'text-muted-foreground scale-100'
+              showIncome ? 'text-success scale-110' : 'text-muted-foreground scale-100'
             }`}>
               Masuk
             </span>
             
             <button
               onClick={toggleTransactionType}
-              className={`relative w-14 h-7 sm:w-16 sm:h-8 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+              className={`relative w-14 h-7 sm:w-16 sm:h-8  transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary ${
                 showIncome 
-                  ? 'bg-green-500 hover:bg-green-600' 
-                  : 'bg-red-500 hover:bg-red-600'
+                  ? 'bg-success hover:brightness-110' 
+                  : 'bg-destructive hover:brightness-110'
               }`}
             >
-              <div className={`absolute top-0.5 w-6 h-6 sm:w-7 sm:h-7 bg-white rounded-full shadow-lg transition-all duration-300 transform flex items-center justify-center ${
+              <div className={`absolute top-0.5 w-6 h-6 sm:w-7 sm:h-7 bg-background  shadow-lg transition-all duration-300 transform flex items-center justify-center ${
                 showIncome ? 'translate-x-0.5' : 'translate-x-7 sm:translate-x-8'
               }`}>
                 {showIncome ? (
-                  <TrendingUp className="h-3 w-3 text-green-600" />
+                  <ArrowUp className="h-3 w-3 text-success" />
                 ) : (
-                  <TrendingDown className="h-3 w-3 text-red-600" />
+                  <ArrowDown className="h-3 w-3 text-destructive" />
                 )}
               </div>
             </button>
             
             <span className={`text-xs sm:text-sm font-medium transition-all duration-300 ${
-              !showIncome ? 'text-red-600 scale-110' : 'text-muted-foreground scale-100'
+              !showIncome ? 'text-destructive scale-110' : 'text-muted-foreground scale-100'
             }`}>
               Keluar
             </span>
           </div>
         </div>
         
-        <div className={`text-xl sm:text-2xl font-bold mt-3 transition-all duration-300 ${
-          showIncome ? 'text-green-600' : 'text-red-600'
-        }`}>
+        <div className={`text-xl sm:text-2xl font-bold mt-3 transition-all duration-300 gradient-text ${
+          showIncome ? 'from-success to-success/70' : 'from-destructive to-destructive/70'
+        }`} style={{
+          background: showIncome 
+            ? 'linear-gradient(135deg, var(--success) 0%, var(--success) 100%)'
+            : 'linear-gradient(135deg, var(--destructive) 0%, var(--destructive) 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
           Total: Rp {totalAmount.toLocaleString('id-ID')}
         </div>
-      </CardHeader>
+      </div>
       
-      <CardContent className="px-2 sm:px-6">
+      <div className="px-0 sm:px-0">
         <div className="transition-all duration-300 ease-in-out">
           {filteredTransactions.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <div className="mb-4">
                 {showIncome ? (
-                  <TrendingUp className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                  <ArrowUp className="h-12 w-12 mx-auto text-muted-foreground/50" />
                 ) : (
-                  <TrendingDown className="h-12 w-12 mx-auto text-muted-foreground/50" />
+                  <ArrowDown className="h-12 w-12 mx-auto text-muted-foreground/50" />
                 )}
               </div>
               <p className="text-lg">Belum ada {showIncome ? 'pemasukan' : 'pengeluaran'} yang tercatat.</p>
@@ -158,10 +164,10 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                           <div className="flex items-center gap-1 sm:gap-2">
                             <Badge 
                               variant={transaction.type === 'income' ? 'default' : 'destructive'}
-                              className="w-2 h-2 p-0 rounded-full flex-shrink-0"
+                              className="w-2 h-2 p-0  flex-shrink-0"
                             />
                             <span className={`font-semibold text-xs sm:text-sm ${
-                              transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                              transaction.type === 'income' ? 'text-success' : 'text-destructive'
                             }`}>
                               Rp {transaction.amount.toLocaleString('id-ID')}
                             </span>
@@ -211,9 +217,9 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                                 onDeleteTransaction(transaction.id);
                               }
                             }}
-                            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors p-0"
+                            className="w-7 h-7 sm:w-8 sm:h-8  text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors p-0"
                           >
-                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                            <X className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -224,8 +230,8 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
             </div>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

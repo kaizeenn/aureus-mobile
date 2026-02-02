@@ -1,9 +1,8 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, Mic, MicOff, Brain, Edit, Calendar } from 'lucide-react';
+import { X, Mic, MicOff, Hash, Edit, Square } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -29,7 +28,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
       'Makanan & Minuman',
       'Transportasi',
       'Belanja',
-      'Tagihan',
+      'Hashihan',
       'Kesehatan',
       'Hiburan',
       'Pendidikan',
@@ -182,7 +181,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
       
       // Bills - Expanded
       if (lowerText.match(/\b(listrik|air|pdam|telepon|internet|wifi|pulsa|token|pln|tagihan|bpjs|asuransi|cicilan|kredit|hutang|pinjaman|sewa|kos|kontrakan)\b/))
-        return 'Tagihan';
+        return 'Hashihan';
       
       // Health - Expanded
       if (lowerText.match(/\b(dokter|rumah sakit|obat|vitamin|kesehatan|medical|apotek|klinik|periksa|gigi|mata|checkup|imunisasi|vaksin)\b/))
@@ -523,21 +522,21 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md animate-in fade-in zoom-in duration-200">
-        <CardHeader className="flex flex-row items-center justify-between pb-4">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Brain className="h-5 w-5 text-blue-600" />
-            Smart Voice Input v2
-          </CardTitle>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+      <div className="w-full max-w-md neumorphic-card bg-background  p-6 animate-in zoom-in slide-in-from-bottom-4 duration-300">
+        <div className="flex flex-row items-center justify-between pb-4">
+          <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
+            <Hash className="h-5 w-5 text-primary" />
+            Input Suara
+          </h2>
+          <Button variant="ghost" size="sm" onClick={onClose} className=" h-8 w-8 p-0 hover:bg-muted">
             <X className="h-4 w-4" />
           </Button>
-        </CardHeader>
+        </div>
         
-        <CardContent className="space-y-4">
+        <div className="space-y-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm">
+            <div className="bg-destructive/10 border border-destructive/30 text-destructive px-3 py-2  text-sm">
               {error}
             </div>
           )}
@@ -550,65 +549,65 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
             <Button
               onClick={isListening ? stopListening : startListening}
               disabled={!!error && error.includes('Browser')}
-              className={`w-24 h-24 rounded-full transition-all duration-300 ${ 
+              className={`w-24 h-24  transition-all duration-300 neumorphic-card ${ 
                 isListening 
-                  ? 'bg-red-500 hover:bg-red-600 animate-pulse shadow-xl scale-110' 
-                  : 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                  ? 'bg-destructive hover:bg-destructive/90 animate-pulse shadow-xl scale-110' 
+                  : 'bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl'
               }`}
             >
               {isListening ? <MicOff className="h-10 w-10" /> : <Mic className="h-10 w-10" />}
             </Button>
             
-            <p className="text-sm font-medium">
+            <p className="text-sm font-medium text-foreground">
               {isListening ? '🎤 Mendengarkan...' : 'Tekan untuk berbicara'}
             </p>
           </div>
 
           {transcript && (
-            <div className="bg-muted/50 p-4 rounded-xl border border-border/50">
+            <div className="neumorphic-inset bg-muted/30 p-4  border border-border/30">
               <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Input Suara</p>
-              <p className="text-sm italic">"{transcript}"</p>
+              <p className="text-sm italic text-foreground">"{transcript}"</p>
             </div>
           )}
 
           {isProcessing && (
             <div className="text-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-sm text-muted-foreground">Memproses dengan AI...</p>
+              <div className="animate-spin  h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-sm text-muted-foreground">Memproses...</p>
             </div>
           )}
 
           {parsedTransaction && (
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-900/10 border border-green-200 dark:border-green-800 p-4 rounded-xl space-y-3 shadow-sm">
+            <div className="neumorphic-flat bg-success/5 border border-success/20 p-4  space-y-3 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
-                 <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse"></div>
-                 <p className="font-semibold text-green-800 dark:text-green-200 text-sm">AI Analysis Complete</p>
+                 <div className="h-2 w-2  bg-success animate-pulse"></div>
+                 <p className="font-semibold text-success text-sm">Analisis Selesai</p>
               </div>
               
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="col-span-2 flex justify-between items-center bg-white/50 dark:bg-black/20 p-2 rounded-lg">
+                <div className="col-span-2 flex justify-between items-center neumorphic-inset p-2 ">
                   <span className="text-muted-foreground">Jenis</span>
                   <span className={`font-bold px-2 py-0.5 rounded text-xs ${ 
                     parsedTransaction.type === 'income' 
-                    ? 'bg-green-100 text-green-700 border border-green-200' 
-                    : 'bg-red-100 text-red-700 border border-red-200'
+                    ? 'bg-success/20 text-success border border-success/30' 
+                    : 'bg-destructive/20 text-destructive border border-destructive/30'
                   }`}>
                     {parsedTransaction.type === 'income' ? 'PEMASUKAN' : 'PENGELUARAN'}
                   </span>
                 </div>
 
-                <div className="col-span-2 flex justify-between items-center bg-white/50 dark:bg-black/20 p-2 rounded-lg">
+                <div className="col-span-2 flex justify-between items-center neumorphic-inset p-2 ">
                   <span className="text-muted-foreground">Tanggal</span>
-                  <div className="flex items-center gap-2 font-medium">
-                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                  <div className="flex items-center gap-2 font-medium text-foreground">
+                    <Square className="h-3.5 w-3.5 text-muted-foreground" />
                     {format(parsedTransaction.date, 'dd MMMM yyyy', { locale: id })}
                   </div>
                 </div>
 
-                <div className="col-span-2 flex justify-between items-center group bg-white/50 dark:bg-black/20 p-2 rounded-lg">
+                <div className="col-span-2 flex justify-between items-center group neumorphic-inset p-2 ">
                   <span className="text-muted-foreground">Kategori</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-blue-600">{parsedTransaction.category}</span>
+                    <span className="font-bold text-primary">{parsedTransaction.category}</span>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -623,7 +622,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                 {isEditingCategory && (
                   <div className="col-span-2">
                     <Select value={parsedTransaction.category} onValueChange={handleCategoryChange}>
-                      <SelectTrigger className="w-full bg-white dark:bg-gray-900">
+                      <SelectTrigger className="w-full neumorphic-inset">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -637,7 +636,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                   </div>
                 )}
                 
-                <div className="col-span-2 bg-white/80 dark:bg-black/40 p-3 rounded-lg border border-green-100 dark:border-green-900/50">
+                <div className="col-span-2 neumorphic-inset p-3  border border-success/10">
                     <div className="flex justify-between items-baseline mb-1">
                         <span className="text-xs text-muted-foreground">Total</span>
                         <span className="font-bold text-lg text-foreground">Rp {parsedTransaction.amount.toLocaleString('id-ID')}</span>
@@ -650,7 +649,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
               </div>
               
               <div className="flex gap-2 pt-2">
-                <Button onClick={handleSave} className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-md">
+                <Button onClick={handleSave} className="flex-1 bg-success hover:bg-success/90 text-white shadow-md neumorphic-card">
                   Simpan
                 </Button>
                 <Button 
@@ -661,15 +660,15 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                     setIsEditingCategory(false);
                     startListening();
                   }}
-                  className="px-3"
+                  className="px-3 neumorphic-flat"
                 >
                   Ulangi
                 </Button>
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };

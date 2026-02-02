@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Plus, Trash2, AlertCircle, CheckCircle2, MoreVertical, LayoutGrid } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Budget, Transaction } from '@/pages/Index';
+import { Progress } from '@/components/ui/progress';
+import { Plus, Circle, AlertCircle, Check, X, Square } from 'lucide-react';
+import { Transaction, Budget } from '@/pages/Index';
 
 interface BudgetManagerProps {
   budgets: Budget[];
@@ -15,7 +16,17 @@ interface BudgetManagerProps {
   selectedYear: number;
 }
 
-const CATEGORIES = ['Makanan & Minuman', 'Transportasi', 'Belanja', 'Hiburan', 'Kesehatan', 'Pendidikan', 'Tagihan', 'Investasi', 'Lainnya'];
+const CATEGORIES = [
+  'Makanan & Minuman',
+  'Transportasi',
+  'Belanja',
+  'Hiburan',
+  'Kesehatan',
+  'Pendidikan',
+  'Hashihan',
+  'Investasi',
+  'Lainnya'
+];
 
 const BudgetManager: React.FC<BudgetManagerProps> = ({
   budgets,
@@ -25,142 +36,213 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({
   selectedMonth,
   selectedYear
 }) => {
-  const [showAdd, setShowAdd] = useState(false);
-  const [newCat, setNewCat] = useState('');
-  const [newAmt, setNewAmt] = useState('');
-
-  const monthlyBudgets = budgets.filter(b => b.month === selectedMonth && b.year === selectedYear);
-  const monthlyExpenses = transactions.filter(t => {
-    const d = new Date(t.date);
-    return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear && t.type === 'expense';
+  const [showForm, setShowForm] = useState(false);
+  const [newBudget, setNewBudget] = useState({
+    category: '',
+    amount: ''
   });
 
-  const getStatus = (b: Budget) => {
-    const spent = monthlyExpenses.filter(t => t.category === b.category).reduce((s, t) => s + t.amount, 0);
-    const percent = (spent / b.amount) * 100;
-    return { spent, percent, remaining: b.amount - spent };
+  // Filter budgets and transactions for selected month/year
+  const monthlyBudgets = budgets.filter(b => 
+    b.month === selectedMonth && b.year === selectedYear
+  );
+
+  const monthlyTransactions = transactions.filter(t => {
+    const date = new Date(t.date);
+    return date.getMonth() === selectedMonth && 
+           date.getFullYear() === selectedYear &&
+           t.type === 'expense';
+  });
+
+  const handleAddBudget = () => {
+    if (newBudget.category && newBudget.amount) {
+      onAddBudget({
+        category: newBudget.category,
+        amount: parseFloat(newBudget.amount),
+        month: selectedMonth,
+        year: selectedYear
+      });
+      setNewBudget({ category: '', amount: '' });
+      setShowForm(false);
+    }
   };
 
+  const getBudgetStatus = (budget: Budget) => {
+    const spent = monthlyTransactions
+      .filter(t => t.category === budget.category)
+      .reduce((sum, t) => sum + t.amount, 0);
+    
+    const percentage = (spent / budget.amount) * 100;
+    const remaining = budget.amount - spent;
+    
+    return { spent, percentage, remaining };
+  };
+
+  const totalBudget = monthlyBudgets.reduce((sum, b) => sum + b.amount, 0);
+  const totalSpent = monthlyBudgets.reduce((sum, b) => {
+    const { spent } = getBudgetStatus(b);
+    return sum + spent;
+  }, 0);
+
   return (
-    <div className="space-y-6 pb-20">
-      <div className="flex justify-between items-center">
-         <div>
-            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-               <Target className="h-4 w-4 text-indigo-600" />
-               Current Goals
-            </h2>
-         </div>
-         <Button 
-            onClick={() => setShowAdd(!showAdd)} 
-            className="rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 h-10 px-4 gap-2 shadow-lg shadow-indigo-100 dark:shadow-none"
-         >
-            <Plus className="h-4 w-4" /> Add
-         </Button>
-      </div>
-
-      <AnimatePresence>
-         {showAdd && (
-            <motion.div 
-               initial={{ height: 0, opacity: 0 }} 
-               animate={{ height: 'auto', opacity: 1 }} 
-               exit={{ height: 0, opacity: 0 }}
-               className="overflow-hidden"
-            >
-               <div className="bg-card border border-border p-6 rounded-[32px] space-y-4 mb-4">
-                  <Select value={newCat} onValueChange={setNewCat}>
-                     <SelectTrigger className="bg-muted/50 border-none rounded-2xl h-12">
-                        <SelectValue placeholder="Pilih Kategori" />
-                     </SelectTrigger>
-                     <SelectContent>
-                        {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                     </SelectContent>
-                  </Select>
-                  <Input 
-                     type="number" 
-                     placeholder="Batas Anggaran (Rp)" 
-                     className="bg-muted/50 border-none rounded-2xl h-12 px-4 font-bold"
-                     value={newAmt}
-                     onChange={(e) => setNewAmt(e.target.value)}
-                  />
-                  <div className="flex gap-2 pt-2">
-                     <Button 
-                        onClick={() => {
-                           if (newCat && newAmt) {
-                              onAddBudget({ category: newCat, amount: parseFloat(newAmt), month: selectedMonth, year: selectedYear });
-                              setNewCat(''); setNewAmt(''); setShowAdd(false);
-                           }
-                        }}
-                        className="flex-1 bg-indigo-600 text-white rounded-2xl h-12 font-bold"
-                     >
-                        Create Budget
-                     </Button>
-                     <Button variant="ghost" onClick={() => setShowAdd(false)} className="rounded-2xl h-12">Cancel</Button>
-                  </div>
-               </div>
-            </motion.div>
-         )}
-      </AnimatePresence>
-
-      <div className="space-y-4">
-         {monthlyBudgets.map((b) => {
-            const { spent, percent, remaining } = getStatus(b);
-            const isDanger = percent >= 100;
-            const isWarn = percent >= 80 && percent < 100;
-
-            return (
-               <motion.div 
-                  key={b.id}
-                  layout
-                  className="bg-card border border-border p-6 rounded-[32px] shadow-sm space-y-4 relative group"
-               >
-                  <div className="flex justify-between items-start">
-                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isDanger ? 'bg-rose-50 text-rose-500' : 'bg-indigo-50 text-indigo-600'}`}>
-                           <LayoutGrid className="h-5 w-5" />
-                        </div>
-                        <div>
-                           <h4 className="font-bold text-sm">{b.category}</h4>
-                           <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
-                              Rp {b.amount.toLocaleString('id-ID')} Limit
-                           </p>
-                        </div>
-                     </div>
-                     <button onClick={() => onDeleteBudget(b.id)} className="opacity-0 group-hover:opacity-100 p-2 text-rose-500 transition-opacity">
-                        <Trash2 className="h-4 w-4" />
-                     </button>
-                  </div>
-
-                  <div className="space-y-2">
-                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-wider">
-                        <span className={isDanger ? 'text-rose-600' : 'text-indigo-600'}>Terpakai: Rp {spent.toLocaleString('id-ID')}</span>
-                        <span className="text-muted-foreground">Sisa: Rp {Math.max(0, remaining).toLocaleString('id-ID')}</span>
-                     </div>
-                     <div className="h-2.5 bg-muted rounded-full overflow-hidden">
-                        <motion.div 
-                           initial={{ width: 0 }}
-                           animate={{ width: `${Math.min(percent, 100)}%` }}
-                           className={`h-full rounded-full ${isDanger ? 'bg-rose-500' : isWarn ? 'bg-amber-500' : 'bg-indigo-600'}`}
-                        />
-                     </div>
-                  </div>
-
-                  {isDanger && (
-                     <div className="flex items-center gap-2 bg-rose-50 dark:bg-rose-950/20 p-3 rounded-2xl text-rose-600 border border-rose-100 dark:border-rose-900/30">
-                        <AlertCircle className="h-4 w-4 shrink-0" />
-                        <span className="text-[10px] font-bold uppercase">Anggaran Terlampaui! Kurangi pengeluaran di kategori ini.</span>
-                     </div>
-                  )}
-               </motion.div>
-            );
-         })}
-
-         {monthlyBudgets.length === 0 && (
-            <div className="py-20 text-center space-y-3 opacity-30">
-               <Target className="h-16 w-16 mx-auto" />
-               <p className="font-bold italic">No goals set for this month</p>
+    <div className="space-y-6">
+      {/* Budget Overview - Neumorphic Card */}
+      <div className="neumorphic-card p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <div className="p-2  bg-primary/10">
+              <Square className="h-5 w-5 text-primary" />
             </div>
-         )}
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">Budget Overview</h3>
+              <p className="text-xs text-muted-foreground">
+                {new Date(selectedYear, selectedMonth).toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+              </p>
+            </div>
+          </div>
+          <Button onClick={() => setShowForm(!showForm)} size="sm" className="transition-smooth hover:scale-105">
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Budget
+          </Button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="text-center p-4  bg-primary/5 border border-primary/10">
+            <p className="text-sm text-muted-foreground font-medium mb-1">Total Budget</p>
+            <p className="text-xl font-bold text-primary">
+              Rp {totalBudget.toLocaleString('id-ID')}
+            </p>
+          </div>
+          <div className="text-center p-4  bg-destructive/5 border border-destructive/10">
+            <p className="text-sm text-muted-foreground font-medium mb-1">Total Pengeluaran</p>
+            <p className="text-xl font-bold text-destructive">
+              Rp {totalSpent.toLocaleString('id-ID')}
+            </p>
+          </div>
+          <div className={`text-center p-4  border ${
+            totalBudget - totalSpent >= 0 
+              ? 'bg-success/5 border-success/10' 
+              : 'bg-destructive/5 border-destructive/10'
+          }`}>
+            <p className={`text-sm font-medium mb-1 ${
+              totalBudget - totalSpent >= 0 
+                ? 'text-muted-foreground' 
+                : 'text-muted-foreground'
+            }`}>
+              Sisa Budget
+            </p>
+            <p className={`text-xl font-bold ${
+              totalBudget - totalSpent >= 0 
+                ? 'text-success' 
+                : 'text-destructive'
+            }`}>
+              Rp {Math.abs(totalBudget - totalSpent).toLocaleString('id-ID')}
+              {totalBudget - totalSpent < 0 && ' (Over)'}
+            </p>
+          </div>
+        </div>
+
+        {/* Add Budget Form */}
+        {showForm && (
+          <div className="neumorphic-inset p-4  animate-slide-up">
+            <h3 className="font-medium mb-4 text-foreground">Tambah Budget Baru</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <Select value={newBudget.category} onValueChange={(value) => setNewBudget(prev => ({...prev, category: value}))}>
+                <SelectTrigger className="neumorphic-inset">
+                  <SelectValue placeholder="Pilih Kategori" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                type="number"
+                placeholder="Jumlah Budget"
+                value={newBudget.amount}
+                onChange={(e) => setNewBudget(prev => ({...prev, amount: e.target.value}))}
+                className="neumorphic-inset"
+              />
+              <div className="flex gap-2">
+                <Button onClick={handleAddBudget} size="sm" className="flex-1">
+                  Simpan
+                </Button>
+                <Button variant="outline" onClick={() => setShowForm(false)} size="sm">
+                  Batal
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Budget Details */}
+      {monthlyBudgets.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {monthlyBudgets.map(budget => {
+            const { spent, percentage, remaining } = getBudgetStatus(budget);
+            const isOverBudget = percentage > 100;
+            const isNearLimit = percentage > 80 && percentage <= 100;
+            
+            return (
+              <div key={budget.id} className="neumorphic-card p-5 transition-smooth hover:scale-[1.02]">
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center gap-2">
+                    {isOverBudget ? (
+                      <AlertCircle className="h-5 w-5 text-destructive" />
+                    ) : isNearLimit ? (
+                      <AlertCircle className="h-5 w-5 text-yellow-500" />
+                    ) : (
+                      <Check className="h-5 w-5 text-success" />
+                    )}
+                    <h3 className="font-semibold text-foreground">{budget.category}</h3>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDeleteBudget(budget.id)}
+                    className="text-destructive hover:text-destructive/80 p-1 h-8 w-8"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Pengeluaran</span>
+                    <span className="font-medium text-foreground">
+                      Rp {spent.toLocaleString('id-ID')} / Rp {budget.amount.toLocaleString('id-ID')}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={Math.min(percentage, 100)} 
+                    className={`h-2 ${
+                      isOverBudget ? '[&>div]:bg-destructive' : 
+                      isNearLimit ? '[&>div]:bg-yellow-500' : 
+                      '[&>div]:bg-success'
+                    }`}
+                  />
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">{percentage.toFixed(1)}% terpakai</span>
+                    <span className={remaining >= 0 ? 'text-success font-medium' : 'text-destructive font-medium'}>
+                      {remaining >= 0 ? `Sisa: Rp ${remaining.toLocaleString('id-ID')}` : `Over: Rp ${Math.abs(remaining).toLocaleString('id-ID')}`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="neumorphic-card p-12 text-center">
+          <Circle className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+          <p className="text-lg text-muted-foreground">Belum ada budget yang ditetapkan</p>
+          <p className="text-sm text-muted-foreground/70 mt-1">Mulai buat budget untuk kontrol keuangan yang lebih baik!</p>
+        </div>
+      )}
     </div>
   );
 };

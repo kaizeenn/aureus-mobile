@@ -1,32 +1,17 @@
+
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  FileText, 
-  Share2, 
-  Download, 
-  ChevronDown, 
-  CheckCircle2, 
-  FileSpreadsheet,
-  FileType
-} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Square, ArrowUp, ArrowDown, File } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
-import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
-import { Share } from '@capacitor/share';
-import { Capacitor } from '@capacitor/core';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 
 interface MonthlyReportsProps {
   transactions: Transaction[];
-  minimalist?: boolean;
 }
 
-const MonthlyReports: React.FC<MonthlyReportsProps> = ({ transactions, minimalist = false }) => {
+const MonthlyReports: React.FC<MonthlyReportsProps> = ({ transactions }) => {
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
-  const [isExporting, setIsExporting] = useState(false);
 
   const months = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -37,183 +22,240 @@ const MonthlyReports: React.FC<MonthlyReportsProps> = ({ transactions, minimalis
     new Set(transactions.map(t => new Date(t.date).getFullYear()))
   ).sort((a, b) => b - a);
 
-  if (availableYears.length === 0) availableYears.push(new Date().getFullYear());
-
   const filteredTransactions = transactions.filter(t => {
     const date = new Date(t.date);
     return date.getMonth() === selectedMonth && date.getFullYear() === selectedYear;
   });
 
-  const generateCSV = () => {
-    const headers = ['Tanggal', 'Tipe', 'Kategori', 'Jumlah', 'Keterangan'];
-    const rows = filteredTransactions.map(t => [
-      new Date(t.date).toLocaleDateString('id-ID'),
-      t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
-      t.category,
-      t.amount.toString(),
-      t.description
-    ]);
-    
-    return [headers, ...rows].map(e => e.join(",")).join("\n");
+  const income = filteredTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const expense = filteredTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const net = income - expense;
+
+  const downloadCSV = () => {
+    const csvData = [
+      ['Laporan Bulanan', `${months[selectedMonth]} ${selectedYear}`],
+      [''],
+      ['Ringkasan'],
+      ['Pemasukan', `Rp ${income.toLocaleString('id-ID')}`],
+      ['Pengeluaran', `Rp ${expense.toLocaleString('id-ID')}`],
+      ['Saldo', `Rp ${Math.abs(net).toLocaleString('id-ID')}${net < 0 ? ' (-)' : ''}`],
+      [''],
+      ['Detail Transaksi'],
+      ['Tanggal', 'Jenis', 'Jumlah', 'Kategori', 'Keterangan'],
+      ...filteredTransactions.map(t => [
+        new Date(t.date).toLocaleDateString('id-ID'),
+        t.type === 'income' ? 'Pemasukan' : 'Pengeluaran',
+        `Rp ${t.amount.toLocaleString('id-ID')}`,
+        t.category,
+        t.description || 'Tidak ada keterangan'
+      ])
+    ];
+
+    const csvContent = csvData.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `laporan-${months[selectedMonth]}-${selectedYear}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
-  const handleExportCSV = async () => {
-    setIsExporting(true);
-    const csvData = generateCSV();
-    const fileName = `Aureus_Report_${months[selectedMonth]}_${selectedYear}.csv`;
+  const downloadPDF = () => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Laporan Bulanan ${months[selectedMonth]} ${selectedYear}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            .header { text-align: center; margin-bottom: 30px; }
+            .summary { margin-bottom: 30px; }
+            .summary-item { margin: 10px 0; padding: 10px; border: 1px solid #ddd; }
+            .income { background-color: #d4edda; }
+            .expense { background-color: #f8d7da; }
+            .balance { background-color: #d1ecf1; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Laporan Bulanan</h1>
+            <h2>${months[selectedMonth]} ${selectedYear}</h2>
+          </div>
+          
+          <div class="summary">
+            <h3>Ringkasan</h3>
+            <div class="summary-item income">
+              <strong>Pemasukan: Rp ${income.toLocaleString('id-ID')}</strong>
+            </div>
+            <div class="summary-item expense">
+              <strong>Pengeluaran: Rp ${expense.toLocaleString('id-ID')}</strong>
+            </div>
+            <div class="summary-item balance">
+              <strong>Saldo: Rp ${Math.abs(net).toLocaleString('id-ID')}${net < 0 ? ' (-)' : ''}</strong>
+            </div>
+          </div>
 
-    try {
-      if (Capacitor.isNativePlatform()) {
-        const result = await Filesystem.writeFile({
-          path: fileName,
-          data: csvData,
-          directory: Directory.Cache,
-          encoding: Encoding.UTF8,
-        });
+          <h3>Detail Transaksi (${filteredTransactions.length} transaksi)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Jenis</th>
+                <th>Jumlah</th>
+                <th>Kategori</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredTransactions.map(t => `
+                <tr>
+                  <td>${new Date(t.date).toLocaleDateString('id-ID')}</td>
+                  <td>${t.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}</td>
+                  <td>Rp ${t.amount.toLocaleString('id-ID')}</td>
+                  <td>${t.category}</td>
+                  <td>${t.description || 'Tidak ada keterangan'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
 
-        await Share.share({
-          title: 'Export Report',
-          text: `Financial report for ${months[selectedMonth]} ${selectedYear}`,
-          url: result.uri,
-          dialogTitle: 'Share Financial Report',
-        });
-      } else {
-        const blob = new Blob([csvData], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-      }
-    } catch (error) {
-      console.error('Export failed', error);
-    } finally {
-      setIsExporting(false);
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printContent);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => {
+        printWindow.print();
+        printWindow.close();
+      }, 250);
     }
   };
-
-  const handleExportPDF = async () => {
-    setIsExporting(true);
-    const fileName = `Aureus_Report_${months[selectedMonth]}_${selectedYear}.pdf`;
-
-    try {
-      const doc = new jsPDF() as any;
-      
-      // Header
-      doc.setFontSize(20);
-      doc.text('AUREUS FINANCIAL REPORT', 14, 22);
-      doc.setFontSize(12);
-      doc.text(`Periode: ${months[selectedMonth]} ${selectedYear}`, 14, 30);
-      
-      const income = filteredTransactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-      const expense = filteredTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-      
-      doc.text(`Total Pemasukan: Rp ${income.toLocaleString('id-ID')}`, 14, 40);
-      doc.text(`Total Pengeluaran: Rp ${expense.toLocaleString('id-ID')}`, 14, 47);
-      doc.text(`Saldo Akhir: Rp ${(income - expense).toLocaleString('id-ID')}`, 14, 54);
-
-      doc.autoTable({
-        startY: 65,
-        head: [['Tanggal', 'Tipe', 'Kategori', 'Jumlah', 'Keterangan']],
-        body: filteredTransactions.map(t => [
-          new Date(t.date).toLocaleDateString('id-ID'),
-          t.type === 'income' ? 'Income' : 'Expense',
-          t.category,
-          `Rp ${t.amount.toLocaleString('id-ID')}`,
-          t.description
-        ]),
-        headStyles: { fillColor: [79, 70, 229] }, // Indigo 600
-      });
-
-      if (Capacitor.isNativePlatform()) {
-        const pdfBase64 = doc.output('datauristring').split(',')[1];
-        const result = await Filesystem.writeFile({
-          path: fileName,
-          data: pdfBase64,
-          directory: Directory.Cache,
-        });
-
-        await Share.share({
-          url: result.uri,
-        });
-      } else {
-        doc.save(fileName);
-      }
-    } catch (error) {
-      console.error('PDF Export failed', error);
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  if (minimalist) {
-    return (
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="rounded-2xl bg-card border border-border"
-        onClick={handleExportPDF}
-      >
-        <FileText className="h-5 w-5 text-indigo-600" />
-      </Button>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <Select value={selectedMonth.toString()} onValueChange={(v) => setSelectedMonth(parseInt(v))}>
-          <SelectTrigger className="bg-card border-border rounded-2xl h-12 flex-1">
+    <div className="neumorphic-card p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <div className="p-2  bg-primary/10">
+            <File className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">Laporan Bulanan</h3>
+        </div>
+      </div>
+      
+      {/* Month/Year Selector and Export Buttons */}
+      <div className="flex flex-wrap gap-3 mb-6">
+        <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+          <SelectTrigger className="w-[140px] neumorphic-inset">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {months.map((m, i) => <SelectItem key={i} value={i.toString()}>{m}</SelectItem>)}
+            {months.map((month, index) => (
+              <SelectItem key={index} value={index.toString()}>
+                {month}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-
-        <Select value={selectedYear.toString()} onValueChange={(v) => setSelectedYear(parseInt(v))}>
-          <SelectTrigger className="bg-card border-border rounded-2xl h-12 w-28">
+        
+        <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+          <SelectTrigger className="w-[100px] neumorphic-inset">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {availableYears.map(y => <SelectItem key={y} value={y.toString()}>{y}</SelectItem>)}
+            {availableYears.map((year) => (
+              <SelectItem key={year} value={year.toString()}>
+                {year}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
+
+        <div className="flex gap-2 ml-auto">
+          <Button 
+            onClick={downloadCSV} 
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-1 transition-smooth hover:scale-105"
+          >
+            <ArrowDown className="h-4 w-4" />
+            CSV
+          </Button>
+          <Button 
+            onClick={downloadPDF} 
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-1 transition-smooth hover:scale-105"
+          >
+            <ArrowDown className="h-4 w-4" />
+            PDF
+          </Button>
+        </div>
       </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={handleExportPDF}
-          disabled={isExporting}
-          className="flex flex-col items-center justify-center p-6 bg-card border border-border rounded-[32px] gap-3 group hover:border-indigo-200 transition-colors"
-        >
-          <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-            <FileType className="h-6 w-6" />
+      
+      {/* Summary Cards */}
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Income Card */}
+          <div className="p-4  bg-success/5 border border-success/10 transition-smooth hover:scale-105">
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowUp className="h-5 w-5 text-success" />
+              <span className="text-sm font-medium text-muted-foreground">Pemasukan</span>
+            </div>
+            <div className="text-2xl font-bold text-success">
+              Rp {income.toLocaleString('id-ID')}
+            </div>
           </div>
-          <span className="font-bold text-sm">Export PDF</span>
-        </motion.button>
-
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={handleExportCSV}
-          disabled={isExporting}
-          className="flex flex-col items-center justify-center p-6 bg-card border border-border rounded-[32px] gap-3 group hover:border-emerald-200 transition-colors"
-        >
-          <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-            <FileSpreadsheet className="h-6 w-6" />
+          
+          {/* Expense Card */}
+          <div className="p-4  bg-destructive/5 border border-destructive/10 transition-smooth hover:scale-105">
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowDown className="h-5 w-5 text-destructive" />
+              <span className="text-sm font-medium text-muted-foreground">Pengeluaran</span>
+            </div>
+            <div className="text-2xl font-bold text-destructive">
+              Rp {expense.toLocaleString('id-ID')}
+            </div>
           </div>
-          <span className="font-bold text-sm">Export CSV</span>
-        </motion.button>
-      </div>
-
-      <div className="bg-indigo-600/5 border border-indigo-600/10 rounded-3xl p-6 text-center">
-        <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Insight</p>
-        <p className="text-sm text-indigo-900/70 dark:text-indigo-100/70 leading-relaxed">
-          {filteredTransactions.length > 0 
-            ? `Ditemukan ${filteredTransactions.length} transaksi untuk periode ini. Laporan siap dibagikan.`
-            : "Tidak ada transaksi untuk periode ini."}
-        </p>
+          
+          {/* Balance Card */}
+          <div className={`p-4  border transition-smooth hover:scale-105 ${
+            net >= 0 
+              ? 'bg-primary/5 border-primary/10' 
+              : 'bg-destructive/5 border-destructive/10'
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <Square className="h-5 w-5 text-primary" />
+              <span className="text-sm font-medium text-muted-foreground">Saldo</span>
+            </div>
+            <div className={`text-2xl font-bold ${
+              net >= 0 ? 'text-primary' : 'text-destructive'
+            }`}>
+              {net < 0 && '-'}Rp {Math.abs(net).toLocaleString('id-ID')}
+            </div>
+          </div>
+        </div>
+        
+        {/* Transaction Count */}
+        <div className="text-center py-3 px-4  bg-muted/50">
+          <p className="text-sm text-muted-foreground">
+            Total <span className="font-semibold text-foreground">{filteredTransactions.length}</span> transaksi pada{' '}
+            <span className="font-semibold text-foreground">{months[selectedMonth]} {selectedYear}</span>
+          </p>
+        </div>
       </div>
     </div>
   );
