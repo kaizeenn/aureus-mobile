@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/components/ui/use-toast';
 import { X, Square, Hash } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
 
@@ -26,7 +27,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
       'Makanan & Minuman',
       'Transportasi',
       'Belanja',
-      'Hashihan',
+      'Tagihan',
       'Kesehatan',
       'Hiburan',
       'Pendidikan',
@@ -48,13 +49,27 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
     e.preventDefault();
     
     if (!formData.amount || !formData.description || !formData.category) {
-      alert('Mohon isi semua field yang wajib!');
+      toast({
+        variant: "destructive",
+        title: "Lengkapi form",
+        description: "Jumlah, kategori, dan keterangan wajib diisi.",
+      });
+      return;
+    }
+
+    const amount = Number.parseFloat(formData.amount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Jumlah tidak valid",
+        description: "Masukkan jumlah yang benar (lebih dari 0).",
+      });
       return;
     }
 
     onAddTransaction({
       type: formData.type,
-      amount: parseFloat(formData.amount),
+      amount,
       category: formData.category,
       description: formData.description,
       date: new Date().toISOString(),
@@ -81,7 +96,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-      <div className="w-full max-w-md neumorphic-card bg-background  p-6 animate-in zoom-in slide-in-from-bottom-4 duration-300">
+      <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-lg animate-in zoom-in slide-in-from-bottom-4 duration-300">
         <div className="flex flex-row items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
             <Hash className="h-5 w-5 text-primary" />
@@ -94,7 +109,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
         
         <div className="mb-6">
           {/* Tanggal Hari Ini */}
-          <div className="neumorphic-inset bg-primary/5 border border-primary/20 p-3 ">
+          <div className="rounded-lg border bg-primary/5 border-primary/20 p-3">
             <div className="flex items-center gap-2 text-primary">
               <Square className="h-4 w-4" />
               <span className="text-sm font-medium">{getCurrentDate()}</span>

@@ -3,17 +3,15 @@ import ThemeToggle from './ThemeToggle';
 
 const Header: React.FC = () => {
   return (
-    <header className="sticky top-0 z-50 glass-effect safe-area-top transition-smooth">
+    <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 safe-area-top">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Brand Logo - Just "Aureus" (no emoji) */}
+        <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold tracking-tight gradient-text">
-              Aureus
+            <h1 className="text-lg font-bold tracking-tight sm:text-xl">
+              <span className="gradient-text">Aureus</span>
             </h1>
           </div>
 
-          {/* Theme Toggle */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
           </div>

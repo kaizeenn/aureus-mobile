@@ -5,15 +5,15 @@ const AboutSection: React.FC = () => {
   return (
     <section className="py-12 px-4 sm:px-6 lg:px-8 mb-20">
       <div className="container mx-auto max-w-2xl">
-        <div className="neumorphic-card p-8 text-center space-y-6 animate-fade-in">
+        <div className="rounded-xl border bg-card p-8 text-center space-y-6 shadow-sm">
           {/* Title */}
           <h2 className="text-2xl font-bold text-foreground">
-            About Developer
+            Tentang
           </h2>
 
           {/* Subtitle */}
           <p className="text-sm text-muted-foreground font-medium">
-            Built with ❤️ & Collaboration
+            Aureus adalah aplikasi pencatat keuangan sederhana yang berjalan sepenuhnya di perangkat Anda.
           </p>
 
           {/* Social Links */}
@@ -44,7 +44,7 @@ const AboutSection: React.FC = () => {
           {/* Humble Quote */}
           <div className="pt-4 border-t border-border">
             <p className="text-sm text-muted-foreground italic">
-              "i dont know anything about code lol"
+              Dibuat untuk pencatatan harian yang cepat, rapi, dan mudah ditinjau.
             </p>
           </div>
 

@@ -3,6 +3,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUp, ArrowDown, AlertCircle, Circle } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface SmartInsightsProps {
   transactions: Transaction[];
@@ -143,44 +144,45 @@ const SmartInsights: React.FC<SmartInsightsProps> = ({ transactions }) => {
   const getInsightStyle = (type: string) => {
     switch (type) {
       case 'success':
-        return 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800';
+        return 'bg-success/10 border-success/30';
       case 'warning':
-        return 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800';
+        return 'bg-primary/10 border-primary/30';
       case 'danger':
-        return 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800';
+        return 'bg-destructive/10 border-destructive/30';
       case 'info':
       default:
-        return 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800';
+        return 'bg-muted/40 border-border';
     }
   };
 
   const getTextStyle = (type: string) => {
     switch (type) {
       case 'success':
-        return 'text-green-700 dark:text-green-300';
+        return 'text-success';
       case 'warning':
-        return 'text-yellow-700 dark:text-yellow-300';
+        return 'text-primary';
       case 'danger':
-        return 'text-red-700 dark:text-red-300';
+        return 'text-destructive';
       case 'info':
       default:
-        return 'text-blue-700 dark:text-blue-300';
+        return 'text-foreground';
     }
   };
 
   return (
-    <div className="neumorphic-card p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-2  bg-primary/10">
+    <Card>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2 text-base">
           <Circle className="h-5 w-5 text-primary" />
-        </div>
-        <h3 className="text-lg font-semibold text-foreground">Wawasan Keuangan</h3>
-      </div>
+          Wawasan Keuangan
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {insights.map((insight, index) => (
           <div
             key={index}
-            className={`p-4  border transition-smooth ${getInsightStyle(insight.type)}`}
+            className={`rounded-lg border p-4 ${getInsightStyle(insight.type)}`}
           >
             <div className="flex items-start gap-3">
               <div className={getTextStyle(insight.type)}>
@@ -190,7 +192,7 @@ const SmartInsights: React.FC<SmartInsightsProps> = ({ transactions }) => {
                 <h4 className={`font-medium mb-1 ${getTextStyle(insight.type)}`}>
                   {insight.title}
                 </h4>
-                <p className={`text-sm ${getTextStyle(insight.type)}`}>
+                <p className="text-sm text-muted-foreground">
                   {insight.message}
                 </p>
               </div>
@@ -203,7 +205,8 @@ const SmartInsights: React.FC<SmartInsightsProps> = ({ transactions }) => {
           </div>
         ))}
       </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

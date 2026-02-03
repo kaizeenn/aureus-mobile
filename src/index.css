@@ -12,101 +12,82 @@
   }
 }
 
-/* Aureus Design System - Black, White, and Pastel Yellow */
-
 @layer base {
   :root {
-    /* Dark Mode as Default - Black with Pastel Yellow Accent */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 100%;
+    /* Light */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    /* Cards - Dark */
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Pastel Yellow Accent */
-    --primary: 48 100% 85%;
-    --primary-foreground: 0 0% 4%;
+    /* Brand accent: warm gold */
+    --primary: 45 93% 47%;
+    --primary-foreground: 48 100% 96%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 48 100% 85%;
-    --accent-foreground: 0 0% 4%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    /* Success - Pastel Yellow */
-    --success: 48 100% 85%;
-    --success-foreground: 0 0% 4%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Destructive - White */
-    --destructive: 0 0% 100%;
-    --destructive-foreground: 0 0% 4%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 45 93% 47%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --ring: 48 100% 85%;
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 210 40% 98%;
 
     --radius: 0.75rem;
 
-    /* Shadows */
-    --shadow-light: rgba(255, 248, 220, 0.08);
-    --shadow-dark: rgba(0, 0, 0, 0.6);
-    
-    /* Gradient - Pastel Yellow */
-    --gradient-from: 48 100% 90%;
-    --gradient-to: 48 100% 80%;
+    --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-elev-2: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
 
   .dark {
-    /* Dark Mode - Black with Pastel Yellow Accent */
-    --background: 0 0% 4%;
-    --foreground: 0 0% 100%;
+    /* Dark */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
 
-    /* Cards */
-    --card: 0 0% 8%;
-    --card-foreground: 0 0% 100%;
+    --card: 222.2 84% 6.5%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 222.2 84% 6.5%;
+    --popover-foreground: 210 40% 98%;
 
-    /* Pastel Yellow Accent */
-    --primary: 48 100% 85%;
-    --primary-foreground: 0 0% 4%;
+    --primary: 45 96% 55%;
+    --primary-foreground: 222.2 84% 4.9%;
 
-    --secondary: 0 0% 12%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 65%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 48 100% 85%;
-    --accent-foreground: 0 0% 4%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
-    /* Success - Pastel Yellow */
-    --success: 48 100% 85%;
-    --success-foreground: 0 0% 4%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Destructive - White */
-    --destructive: 0 0% 100%;
-    --destructive-foreground: 0 0% 4%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 45 96% 55%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 15%;
-    --ring: 48 100% 85%;
+    --success: 142.1 70.6% 45.3%;
+    --success-foreground: 210 40% 98%;
 
-    /* Dark Mode Shadows */
-    --shadow-light: rgba(255, 248, 220, 0.08);
-    --shadow-dark: rgba(0, 0, 0, 0.6);
-    
-    /* Dark Gradient - Pastel Yellow */
-    --gradient-from: 48 100% 90%;
-    --gradient-to: 48 100% 80%;
+    --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-elev-2: 0 10px 28px rgba(0, 0, 0, 0.55);
   }
 }
 
@@ -232,34 +213,24 @@ h1, h2, h3, h4, h5, h6 {
   animation: scaleIn 0.3s ease-out forwards;
 }
 
-/* Card Styles - Black, White, Yellow Pastel */
 @layer utilities {
-  /* Primary Card Style */
+  /* Surface styles (kept for existing components) */
   .neumorphic-card {
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 
-      0 4px 6px -1px rgba(0, 0, 0, 0.3),
-      0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-elev-1);
   }
 
   .neumorphic-card:hover {
-    border-color: hsl(var(--primary));
-    box-shadow: 
-      0 20px 25px -5px rgba(0, 0, 0, 0.4),
-      0 10px 10px -5px rgba(0, 0, 0, 0.2),
-      0 0 0 1px hsl(var(--primary) / 0.3);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-elev-2);
   }
 
-  /* Inset Style for Inputs */
+  /* Subtle inset for inputs/filters */
   .neumorphic-inset {
     background: hsl(var(--background));
     border: 1px solid hsl(var(--border));
     border-radius: calc(var(--radius) / 2);
-    transition: all 0.2s ease;
   }
 
   .neumorphic-inset:focus-within {
@@ -274,46 +245,31 @@ h1, h2, h3, h4, h5, h6 {
     border-radius: var(--radius);
   }
 
-  /* Yellow Accent Card */
-  .card-accent {
-    background: hsl(var(--primary));
-    border: none;
-    border-radius: var(--radius);
-    color: hsl(var(--primary-foreground));
-  }
-
-  .card-accent .text-muted-foreground {
-    color: hsl(var(--primary-foreground) / 0.7);
-  }
-
   /* Frosted Glass Effect */
   .glass-effect {
-    background: rgba(15, 15, 15, 0.8);
+    background: hsl(var(--background) / 0.72);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid hsl(var(--border));
     border-radius: var(--radius);
   }
 
-  /* Gradient Text - Yellow */
+  /* Brand gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, hsl(48 100% 90%), hsl(48 100% 75%));
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.72));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     font-weight: 700;
   }
 
-  /* Gradient Background - Yellow Pastel */
   .gradient-bg {
-    background: linear-gradient(135deg, hsl(48 100% 90%), hsl(48 100% 80%));
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.9), hsl(var(--primary) / 0.7));
   }
 
-  /* Yellow Accent Text */
   .text-accent {
-    color: hsl(48 100% 85%);
+    color: hsl(var(--primary));
   }
 
-  /* Success/Income - Yellow */
   .text-success {
     color: hsl(var(--success));
     font-weight: 600;

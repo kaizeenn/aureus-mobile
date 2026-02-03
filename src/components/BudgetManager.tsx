@@ -23,7 +23,7 @@ const CATEGORIES = [
   'Hiburan',
   'Kesehatan',
   'Pendidikan',
-  'Hashihan',
+  'Tagihan',
   'Investasi',
   'Lainnya'
 ];

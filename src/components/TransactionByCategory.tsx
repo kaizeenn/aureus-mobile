@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, ArrowUp, ArrowDown, Hash } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
@@ -82,17 +83,17 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
   };
 
   return (
-    <div className="neumorphic-card bg-background  p-4 sm:p-6 transition-smooth">
-      <div className="pb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h3 className="flex items-center gap-3 text-foreground text-lg sm:text-xl font-bold">
+    <Card>
+      <CardHeader className="pb-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="flex items-center gap-2 text-base">
             <Hash className="h-5 w-5 text-primary" />
             Transaksi Per Kategori
-          </h3>
+          </CardTitle>
           
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <Select value={selectedType} onValueChange={(value: 'all' | 'income' | 'expense') => setSelectedType(value)}>
-              <SelectTrigger className="w-[140px] neumorphic-inset">
+              <SelectTrigger className="w-[150px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -103,7 +104,7 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
             </Select>
             
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[160px] neumorphic-inset">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -117,9 +118,9 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
             </Select>
           </div>
         </div>
-      </div>
+      </CardHeader>
       
-      <div className="space-y-6">
+      <CardContent className="space-y-6">
         {Object.keys(transactionsByCategory).length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
             <Hash className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
@@ -127,9 +128,9 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
           </div>
         ) : (
           Object.entries(transactionsByCategory).map(([category, categoryTransactions]) => (
-            <div key={category} className="neumorphic-flat bg-background  p-4 border border-border/30">
+            <div key={category} className="rounded-lg border bg-card p-4">
               <div className="pb-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="text-lg flex items-center gap-2 font-bold">
                     <Badge variant="outline" className="text-sm">
                       {category}
@@ -201,12 +202,13 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 if (confirm('Yakin ingin menghapus transaksi ini?')) {
                                   onDeleteTransaction(transaction.id);
                                 }
                               }}
-                              className="w-8 h-8  text-destructive hover:text-destructive hover:bg-destructive/10 transition-colors p-0"
+                              className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
                             >
                               <X className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
@@ -220,8 +222,8 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
             </div>
           ))
         )}
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

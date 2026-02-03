@@ -14,21 +14,51 @@ interface VoiceInputProps {
   onClose: () => void;
 }
 
+type ParsedTransaction = {
+  type: 'income' | 'expense';
+  amount: number;
+  category: string;
+  description: string;
+  date: Date;
+};
+
+type WebSpeechRecognitionEvent = {
+  results: ArrayLike<ArrayLike<{ transcript: string }>>;
+};
+
+type WebSpeechRecognitionErrorEvent = {
+  error: string;
+};
+
+type WebSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: WebSpeechRecognitionEvent) => void) | null;
+  onerror: ((event: WebSpeechRecognitionErrorEvent) => void) | null;
+  onend: (() => void) | null;
+};
+
+type WebSpeechRecognitionCtor = new () => WebSpeechRecognition;
+
 const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [parsedTransaction, setParsedTransaction] = useState<any>(null);
+  const [parsedTransaction, setParsedTransaction] = useState<ParsedTransaction | null>(null);
   const [error, setError] = useState<string>('');
   const [isEditingCategory, setIsEditingCategory] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<WebSpeechRecognition | null>(null);
+  const processVoiceInputRef = useRef<(text: string) => void>(() => {});
 
   const categories = {
     expense: [
       'Makanan & Minuman',
       'Transportasi',
       'Belanja',
-      'Hashihan',
+      'Tagihan',
       'Kesehatan',
       'Hiburan',
       'Pendidikan',
@@ -54,20 +84,29 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
         return;
       }
 
-      const SpeechRecognitionWeb = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const w = window as unknown as {
+        SpeechRecognition?: WebSpeechRecognitionCtor;
+        webkitSpeechRecognition?: WebSpeechRecognitionCtor;
+      };
+      const SpeechRecognitionWeb = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+      if (!SpeechRecognitionWeb) {
+        setError('Browser tidak mendukung speech recognition. Gunakan Chrome atau Edge.');
+        return;
+      }
+
       recognitionRef.current = new SpeechRecognitionWeb();
       
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = 'id-ID';
 
-      recognitionRef.current.onresult = (event: any) => {
-        const finalTranscript = event.results[0][0].transcript;
+      recognitionRef.current.onresult = (event) => {
+        const finalTranscript = event.results?.[0]?.[0]?.transcript ?? '';
         setTranscript(finalTranscript);
-        processVoiceInput(finalTranscript);
+        processVoiceInputRef.current(finalTranscript);
       };
 
-      recognitionRef.current.onerror = (event: any) => {
+      recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error', event.error);
         if (event.error === 'no-speech') {
           setError('Tidak ada suara terdeteksi. Silakan coba lagi.');
@@ -120,15 +159,16 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                 if (matches && matches.length > 0) {
                     const text = matches[0];
                     setTranscript(text);
-                    processVoiceInput(text);
+                    processVoiceInputRef.current(text);
                 }
                 setIsListening(false);
             } else {
                 setError("Izin mikrofon ditolak.");
             }
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
-            setError("Gagal memulai: " + e.message);
+            const message = e instanceof Error ? e.message : 'Unknown error';
+            setError("Gagal memulai: " + message);
             setIsListening(false);
         }
     } else {
@@ -181,7 +221,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
       
       // Bills - Expanded
       if (lowerText.match(/\b(listrik|air|pdam|telepon|internet|wifi|pulsa|token|pln|tagihan|bpjs|asuransi|cicilan|kredit|hutang|pinjaman|sewa|kos|kontrakan)\b/))
-        return 'Hashihan';
+        return 'Tagihan';
       
       // Health - Expanded
       if (lowerText.match(/\b(dokter|rumah sakit|obat|vitamin|kesehatan|medical|apotek|klinik|periksa|gigi|mata|checkup|imunisasi|vaksin)\b/))
@@ -220,24 +260,32 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
       setIsProcessing(false);
     }
   };
+  processVoiceInputRef.current = processVoiceInput;
 
   const parseDate = (text: string): Date => {
     const lowerText = text.toLowerCase();
     const today = new Date();
     
     // Relative dates
+    if (lowerText.includes('kemarin lusa') || lowerText.includes('dua hari lalu')) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - 2);
+      return d;
+    }
     if (lowerText.includes('kemarin')) {
       const d = new Date(today);
       d.setDate(d.getDate() - 1);
       return d;
     }
-    if (lowerText.includes('lusa')) { 
-       // Let's assume user might interpret "kemarin lusa" as "day before yesterday"
-       if (lowerText.includes('kemarin lusa') || lowerText.includes('dua hari lalu')) {
-         const d = new Date(today);
-         d.setDate(d.getDate() - 2);
-         return d;
-       }
+    if (lowerText.includes('besok')) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + 1);
+      return d;
+    }
+    if (lowerText.includes('lusa')) {
+      const d = new Date(today);
+      d.setDate(d.getDate() + 2);
+      return d;
     }
     if (lowerText.match(/(\d+)\s*hari\s*(yang)?\s*lalu/)) {
         const match = lowerText.match(/(\d+)\s*hari\s*(yang)?\s*lalu/);
@@ -245,6 +293,15 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
             const days = parseInt(match[1]);
             const d = new Date(today);
             d.setDate(d.getDate() - days);
+            return d;
+        }
+    }
+    if (lowerText.match(/(\d+)\s*hari\s*(lagi|ke\s*depan)/)) {
+        const match = lowerText.match(/(\d+)\s*hari\s*(lagi|ke\s*depan)/);
+        if (match) {
+            const days = parseInt(match[1]);
+            const d = new Date(today);
+            d.setDate(d.getDate() + days);
             return d;
         }
     }
@@ -334,7 +391,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
    *    - "Rp 100.000" → Amount: 100,000 (with Rp prefix) ✓
    *    - "50.000 kemarin" → Amount: 50,000 (with date) ✓
    */
-  const parseTransaction = (text: string) => {
+  const parseTransaction = (text: string): ParsedTransaction => {
     // Preprocess to normalize Indonesian number formats
     const processedText = preprocessTranscript(text);
     const lowerText = processedText.toLowerCase().trim();
@@ -523,7 +580,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-      <div className="w-full max-w-md neumorphic-card bg-background  p-6 animate-in zoom-in slide-in-from-bottom-4 duration-300">
+      <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-lg animate-in zoom-in slide-in-from-bottom-4 duration-300">
         <div className="flex flex-row items-center justify-between pb-4">
           <h2 className="flex items-center gap-2 text-lg font-bold text-foreground">
             <Hash className="h-5 w-5 text-primary" />
@@ -549,7 +606,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
             <Button
               onClick={isListening ? stopListening : startListening}
               disabled={!!error && error.includes('Browser')}
-              className={`w-24 h-24  transition-all duration-300 neumorphic-card ${ 
+              className={`w-24 h-24 transition-all duration-300 ${ 
                 isListening 
                   ? 'bg-destructive hover:bg-destructive/90 animate-pulse shadow-xl scale-110' 
                   : 'bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl'
@@ -559,12 +616,12 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
             </Button>
             
             <p className="text-sm font-medium text-foreground">
-              {isListening ? '🎤 Mendengarkan...' : 'Tekan untuk berbicara'}
+              {isListening ? 'Mendengarkan…' : 'Tekan untuk berbicara'}
             </p>
           </div>
 
           {transcript && (
-            <div className="neumorphic-inset bg-muted/30 p-4  border border-border/30">
+            <div className="rounded-lg border bg-muted/30 p-4">
               <p className="text-xs font-semibold text-muted-foreground mb-1 uppercase tracking-wider">Input Suara</p>
               <p className="text-sm italic text-foreground">"{transcript}"</p>
             </div>
@@ -578,14 +635,14 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
           )}
 
           {parsedTransaction && (
-            <div className="neumorphic-flat bg-success/5 border border-success/20 p-4  space-y-3 shadow-sm">
+            <div className="rounded-lg border bg-success/5 border-success/20 p-4 space-y-3 shadow-sm">
               <div className="flex items-center gap-2 mb-2">
                  <div className="h-2 w-2  bg-success animate-pulse"></div>
                  <p className="font-semibold text-success text-sm">Analisis Selesai</p>
               </div>
               
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div className="col-span-2 flex justify-between items-center neumorphic-inset p-2 ">
+                <div className="col-span-2 flex justify-between items-center rounded-md border bg-background p-2">
                   <span className="text-muted-foreground">Jenis</span>
                   <span className={`font-bold px-2 py-0.5 rounded text-xs ${ 
                     parsedTransaction.type === 'income' 
@@ -596,7 +653,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                   </span>
                 </div>
 
-                <div className="col-span-2 flex justify-between items-center neumorphic-inset p-2 ">
+                <div className="col-span-2 flex justify-between items-center rounded-md border bg-background p-2">
                   <span className="text-muted-foreground">Tanggal</span>
                   <div className="flex items-center gap-2 font-medium text-foreground">
                     <Square className="h-3.5 w-3.5 text-muted-foreground" />
@@ -604,7 +661,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                   </div>
                 </div>
 
-                <div className="col-span-2 flex justify-between items-center group neumorphic-inset p-2 ">
+                <div className="col-span-2 flex justify-between items-center group rounded-md border bg-background p-2">
                   <span className="text-muted-foreground">Kategori</span>
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-primary">{parsedTransaction.category}</span>
@@ -622,7 +679,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                 {isEditingCategory && (
                   <div className="col-span-2">
                     <Select value={parsedTransaction.category} onValueChange={handleCategoryChange}>
-                      <SelectTrigger className="w-full neumorphic-inset">
+                      <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -636,7 +693,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                   </div>
                 )}
                 
-                <div className="col-span-2 neumorphic-inset p-3  border border-success/10">
+                <div className="col-span-2 rounded-md border bg-background p-3">
                     <div className="flex justify-between items-baseline mb-1">
                         <span className="text-xs text-muted-foreground">Total</span>
                         <span className="font-bold text-lg text-foreground">Rp {parsedTransaction.amount.toLocaleString('id-ID')}</span>
@@ -649,7 +706,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
               </div>
               
               <div className="flex gap-2 pt-2">
-                <Button onClick={handleSave} className="flex-1 bg-success hover:bg-success/90 text-white shadow-md neumorphic-card">
+                <Button onClick={handleSave} className="flex-1 bg-success hover:bg-success/90 text-success-foreground shadow-md">
                   Simpan
                 </Button>
                 <Button 
@@ -660,7 +717,7 @@ const VoiceInput: React.FC<VoiceInputProps> = ({ onAddTransaction, onClose }) =>
                     setIsEditingCategory(false);
                     startListening();
                   }}
-                  className="px-3 neumorphic-flat"
+                  className="px-3"
                 >
                   Ulangi
                 </Button>

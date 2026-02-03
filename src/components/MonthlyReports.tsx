@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Square, ArrowUp, ArrowDown, File } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface MonthlyReportsProps {
   transactions: Transaction[];
@@ -21,6 +22,9 @@ const MonthlyReports: React.FC<MonthlyReportsProps> = ({ transactions }) => {
   const availableYears = Array.from(
     new Set(transactions.map(t => new Date(t.date).getFullYear()))
   ).sort((a, b) => b - a);
+  if (availableYears.length === 0) {
+    availableYears.push(new Date().getFullYear());
+  }
 
   const filteredTransactions = transactions.filter(t => {
     const date = new Date(t.date);
@@ -145,119 +149,94 @@ const MonthlyReports: React.FC<MonthlyReportsProps> = ({ transactions }) => {
   };
 
   return (
-    <div className="neumorphic-card p-6">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <div className="p-2  bg-primary/10">
+    <Card>
+      <CardHeader className="pb-4">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2 text-base">
             <File className="h-5 w-5 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground">Laporan Bulanan</h3>
+            Laporan Bulanan
+          </CardTitle>
         </div>
-      </div>
-      
-      {/* Month/Year Selector and Export Buttons */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-          <SelectTrigger className="w-[140px] neumorphic-inset">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {months.map((month, index) => (
-              <SelectItem key={index} value={index.toString()}>
-                {month}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        
-        <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-          <SelectTrigger className="w-[100px] neumorphic-inset">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {availableYears.map((year) => (
-              <SelectItem key={year} value={year.toString()}>
-                {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      </CardHeader>
 
-        <div className="flex gap-2 ml-auto">
-          <Button 
-            onClick={downloadCSV} 
-            variant="outline" 
-            size="sm"
-            className="flex items-center gap-1 transition-smooth hover:scale-105"
-          >
-            <ArrowDown className="h-4 w-4" />
-            CSV
-          </Button>
-          <Button 
-            onClick={downloadPDF} 
-            variant="outline" 
-            size="sm"
-            className="flex items-center gap-1 transition-smooth hover:scale-105"
-          >
-            <ArrowDown className="h-4 w-4" />
-            PDF
-          </Button>
+      <CardContent>
+        <div className="flex flex-wrap items-center gap-3">
+          <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {months.map((month, index) => (
+                <SelectItem key={index} value={index.toString()}>
+                  {month}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
+          <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {availableYears.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <div className="ml-auto flex gap-2">
+            <Button onClick={downloadCSV} variant="outline" size="sm" className="gap-2">
+              <ArrowDown className="h-4 w-4" />
+              CSV
+            </Button>
+            <Button onClick={downloadPDF} variant="outline" size="sm" className="gap-2">
+              <ArrowDown className="h-4 w-4" />
+              PDF
+            </Button>
+          </div>
         </div>
-      </div>
-      
-      {/* Summary Cards */}
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Income Card */}
-          <div className="p-4  bg-success/5 border border-success/10 transition-smooth hover:scale-105">
-            <div className="flex items-center gap-2 mb-2">
-              <ArrowUp className="h-5 w-5 text-success" />
-              <span className="text-sm font-medium text-muted-foreground">Pemasukan</span>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <ArrowUp className="h-4 w-4 text-success" />
+              Pemasukan
             </div>
-            <div className="text-2xl font-bold text-success">
+            <div className="mt-2 text-2xl font-bold tabular-nums text-success">
               Rp {income.toLocaleString('id-ID')}
             </div>
           </div>
           
-          {/* Expense Card */}
-          <div className="p-4  bg-destructive/5 border border-destructive/10 transition-smooth hover:scale-105">
-            <div className="flex items-center gap-2 mb-2">
-              <ArrowDown className="h-5 w-5 text-destructive" />
-              <span className="text-sm font-medium text-muted-foreground">Pengeluaran</span>
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <ArrowDown className="h-4 w-4 text-destructive" />
+              Pengeluaran
             </div>
-            <div className="text-2xl font-bold text-destructive">
+            <div className="mt-2 text-2xl font-bold tabular-nums text-destructive">
               Rp {expense.toLocaleString('id-ID')}
             </div>
           </div>
           
-          {/* Balance Card */}
-          <div className={`p-4  border transition-smooth hover:scale-105 ${
-            net >= 0 
-              ? 'bg-primary/5 border-primary/10' 
-              : 'bg-destructive/5 border-destructive/10'
-          }`}>
-            <div className="flex items-center gap-2 mb-2">
-              <Square className="h-5 w-5 text-primary" />
-              <span className="text-sm font-medium text-muted-foreground">Saldo</span>
+          <div className="rounded-lg border bg-card p-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Square className="h-4 w-4 text-primary" />
+              Saldo
             </div>
-            <div className={`text-2xl font-bold ${
-              net >= 0 ? 'text-primary' : 'text-destructive'
-            }`}>
+            <div className={`mt-2 text-2xl font-bold tabular-nums ${net >= 0 ? 'text-foreground' : 'text-destructive'}`}>
               {net < 0 && '-'}Rp {Math.abs(net).toLocaleString('id-ID')}
             </div>
           </div>
         </div>
-        
-        {/* Transaction Count */}
-        <div className="text-center py-3 px-4  bg-muted/50">
-          <p className="text-sm text-muted-foreground">
-            Total <span className="font-semibold text-foreground">{filteredTransactions.length}</span> transaksi pada{' '}
-            <span className="font-semibold text-foreground">{months[selectedMonth]} {selectedYear}</span>
-          </p>
+
+        <div className="mt-4 rounded-lg border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
+          Total <span className="font-semibold text-foreground">{filteredTransactions.length}</span> transaksi pada{' '}
+          <span className="font-semibold text-foreground">{months[selectedMonth]} {selectedYear}</span>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

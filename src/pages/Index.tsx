@@ -13,6 +13,7 @@ import TransactionByCategory from '@/components/TransactionByCategory';
 import StatisticsChart from '@/components/StatisticsChart';
 import TransactionSummary from '@/components/TransactionSummary';
 import MonthlyReports from '@/components/MonthlyReports';
+import SmartInsights from '@/components/SmartInsights';
 
 export interface Transaction {
   id: string;
@@ -39,8 +40,50 @@ const Index = () => {
   // Load data from localStorage on component mount
   useEffect(() => {
     const savedTransactions = localStorage.getItem('transactions');
-    if (savedTransactions) {
-      setTransactions(JSON.parse(savedTransactions));
+    if (!savedTransactions) return;
+    try {
+      const parsed = JSON.parse(savedTransactions);
+      if (!Array.isArray(parsed)) return;
+
+      const normalizeStoredTransaction = (value: unknown): Transaction | null => {
+        if (typeof value !== 'object' || value === null) return null;
+        const t = value as Record<string, unknown>;
+
+        const type =
+          t.type === 'income' ? 'income' : t.type === 'expense' ? 'expense' : null;
+          if (!type) return null;
+
+        const amount =
+          typeof t.amount === 'number'
+            ? t.amount
+            : Number.parseFloat(String(t.amount ?? ''));
+        if (!Number.isFinite(amount)) return null;
+
+        const rawCategory = typeof t.category === 'string' ? t.category : '';
+        const category = rawCategory === 'Hashihan' ? 'Tagihan' : rawCategory;
+
+        const description = typeof t.description === 'string' ? t.description : '';
+        const dateString =
+          typeof t.date === 'string' ? t.date : new Date().toISOString();
+        const date = Number.isNaN(new Date(dateString).getTime())
+          ? new Date().toISOString()
+          : dateString;
+
+        const id =
+          typeof t.id === 'string' && t.id.length > 0
+            ? t.id
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+        return { id, type, amount, category, description, date };
+      };
+
+      const normalized: Transaction[] = parsed
+        .map(normalizeStoredTransaction)
+        .filter(Boolean) as Transaction[];
+
+      setTransactions(normalized);
+    } catch {
+      // ignore corrupted storage
     }
   }, []);
 
@@ -52,7 +95,7 @@ const Index = () => {
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {
       ...transaction,
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
     };
     setTransactions(prev => [newTransaction, ...prev]);
     setShowForm(false);
@@ -79,74 +122,64 @@ const Index = () => {
       {/* Main Content - with bottom nav spacing */}
       <main className="pb-nav custom-scrollbar">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-6 py-6">
+          {(activeTab === 'home' || activeTab === 'stats') && (
+            <div className="rounded-xl border bg-card p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Periode</span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month, index) => (
+                        <SelectItem key={index} value={index.toString()}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                    <SelectTrigger className="w-[110px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableYears.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {activeTab === 'home' && (
+                  <div className="flex gap-2 sm:ml-auto">
+                    <Button onClick={() => setShowForm(true)} className="gap-2">
+                      <Plus className="h-4 w-4" />
+                      Tambah
+                    </Button>
+                    <Button onClick={() => setShowVoiceInput(true)} variant="secondary" className="gap-2">
+                      <Mic className="h-4 w-4" />
+                      Suara
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           
           {/* Tab Content Based on Bottom Navigation */}
-          <section className="animate-fade-in">
+          <section>
             {activeTab === 'home' && (
               <div className="space-y-6">
-                {/* Floating Action Buttons - PALING ATAS */}
-                <div className="flex justify-center gap-6 animate-scale-in">
-                  <div className="flex flex-col items-center">
-                    <Button 
-                      onClick={() => setShowForm(true)}
-                      className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg transition-smooth hover:scale-110 hover:shadow-xl"
-                      size="icon"
-                    >
-                      <Plus className="h-6 w-6" />
-                    </Button>
-                    <span className="text-xs text-muted-foreground mt-2 font-medium">Manual</span>
-                  </div>
-                  
-                  <div className="flex flex-col items-center">
-                    <Button 
-                      onClick={() => setShowVoiceInput(true)}
-                      className="w-16 h-16 rounded-full bg-gradient-bg hover:opacity-90 text-white shadow-lg transition-smooth hover:scale-110 hover:shadow-xl"
-                      size="icon"
-                    >
-                      <Mic className="h-6 w-6" />
-                    </Button>
-                    <span className="text-xs text-muted-foreground mt-2 font-medium">Voice</span>
-                  </div>
-                </div>
-
-                {/* Month/Year Selector - KEDUA */}
-                <div className="neumorphic-card p-4">
-                  <div className="flex flex-col sm:flex-row justify-center items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5 text-primary" />
-                      <span className="text-sm font-medium text-foreground">Periode:</span>
-                    </div>
-                    <div className="flex gap-3">
-                      <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-                        <SelectTrigger className="w-[140px] neumorphic-inset">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {months.map((month, index) => (
-                            <SelectItem key={index} value={index.toString()}>
-                              {month}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                        <SelectTrigger className="w-[100px] neumorphic-inset">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableYears.map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hero Balance Section - PALING BAWAH */}
                 <TransactionSummary transactions={transactions} />
+                <SmartInsights transactions={transactions} />
               </div>
             )}
 
@@ -161,7 +194,11 @@ const Index = () => {
                 />
                 
                 {/* Statistics Chart */}
-                <StatisticsChart transactions={transactions} />
+                <StatisticsChart
+                  transactions={transactions}
+                  selectedMonth={selectedMonth}
+                  selectedYear={selectedYear}
+                />
                 
                 {/* Transaction by Category */}
                 <TransactionByCategory 

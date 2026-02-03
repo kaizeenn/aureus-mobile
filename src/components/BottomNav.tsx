@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, BarChart, File, Grid } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export type NavTab = 'home' | 'stats' | 'reports' | 'more';
 
@@ -10,16 +11,17 @@ interface BottomNavProps {
 
 const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
   const navItems = [
-    { id: 'home' as NavTab, icon: Home, label: 'Home' },
-    { id: 'stats' as NavTab, icon: BarChart, label: 'Stats' },
-    { id: 'reports' as NavTab, icon: File, label: 'Reports' },
-    { id: 'more' as NavTab, icon: Grid, label: 'More' },
+    { id: 'home' as NavTab, icon: Home, label: 'Beranda' },
+    { id: 'stats' as NavTab, icon: BarChart, label: 'Statistik' },
+    { id: 'reports' as NavTab, icon: File, label: 'Laporan' },
+    { id: 'more' as NavTab, icon: Grid, label: 'Lainnya' },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass-effect border-t border-border safe-area-bottom">
-      <div className="container mx-auto px-2">
-        <div className="flex items-center justify-around h-16">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+      <div className="border-t bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-2">
+          <div className="flex h-16 items-center justify-around">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -28,38 +30,30 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`
-                  flex flex-col items-center justify-center gap-1 px-4 py-2 
-                  transition-all duration-300 min-w-[64px]
-                  ${isActive 
-                    ? 'text-primary scale-105' 
-                    : 'text-muted-foreground hover:text-foreground hover:scale-105'
-                  }
-                `}
+                type="button"
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                  "relative flex min-w-[72px] flex-col items-center justify-center gap-1 rounded-lg px-4 py-2 text-xs font-medium transition-colors",
+                  isActive
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
               >
-                <Icon 
-                  className={`
-                    h-6 w-6 transition-all duration-300
-                    ${isActive ? 'scale-110' : ''}
-                  `}
-                  strokeWidth={isActive ? 2.5 : 2}
-                />
+                <Icon className={cn("h-5 w-5", isActive && "text-primary")} strokeWidth={2.25} />
                 <span 
-                  className={`
-                    text-xs font-medium transition-all duration-300
-                    ${isActive ? 'font-semibold' : ''}
-                  `}
+                  className={cn("leading-none", isActive && "font-semibold")}
                 >
                   {item.label}
                 </span>
                 
                 {/* Active indicator */}
                 {isActive && (
-                  <div className="absolute bottom-0 w-1 h-1  bg-primary animate-scale-in" />
+                  <div className="absolute -bottom-[1px] h-[3px] w-8 rounded-full bg-primary" />
                 )}
               </button>
             );
           })}
+          </div>
         </div>
       </div>
     </nav>

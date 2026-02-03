@@ -1,5 +1,8 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
@@ -12,13 +15,28 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="container mx-auto flex min-h-screen max-w-2xl items-center justify-center px-6">
+        <div className="w-full rounded-xl border bg-card p-8 text-center shadow-sm">
+          <div className="mx-auto mb-3 w-fit rounded-full border bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+            404
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+            Halaman tidak ditemukan
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Route <span className="font-mono">{location.pathname}</span> tidak tersedia.
+          </p>
+
+          <div className="mt-6 flex justify-center">
+            <Button asChild>
+              <Link to="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Kembali ke Beranda
+              </Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

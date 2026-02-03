@@ -1,6 +1,8 @@
 
 import React from 'react';
 import { Transaction } from '@/pages/Index';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface TransactionSummaryProps {
   transactions: Transaction[];
@@ -42,43 +44,78 @@ const TransactionSummary: React.FC<TransactionSummaryProps> = ({ transactions })
   const monthlyNet = monthlyIncome - monthlyExpense;
 
   return (
-    <div className="grid grid-cols-2 gap-3">
-      <div className="neumorphic-card p-3 border-2 border-foreground">
-        <div className="text-xs text-muted-foreground mb-2">HARI INI</div>
-        <div className="space-y-1 text-xs">
-          <div className="flex justify-between">
-            <span>Masuk</span>
-            <span className="font-bold">{todayIncome.toLocaleString('id-ID')}</span>
+    <Card>
+      <CardHeader className="pb-4">
+        <CardTitle className="text-base">Ringkasan</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded-lg border bg-card p-4">
+            <div className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground">
+              Hari ini
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <ArrowUpRight className="h-4 w-4 text-success" />
+                  Masuk
+                </span>
+                <span className="font-semibold tabular-nums">
+                  Rp {todayIncome.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <ArrowDownRight className="h-4 w-4 text-destructive" />
+                  Keluar
+                </span>
+                <span className="font-semibold tabular-nums">
+                  Rp {todayExpense.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <div className="mt-3 flex items-baseline justify-between border-t pt-3">
+                <span className="text-sm font-semibold">Saldo</span>
+                <span className="font-semibold tabular-nums">
+                  {todayNet < 0 && '-'}Rp {Math.abs(todayNet).toLocaleString('id-ID')}
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span>Keluar</span>
-            <span className="font-bold">{todayExpense.toLocaleString('id-ID')}</span>
-          </div>
-          <div className="flex justify-between border-t border-border pt-1">
-            <span className="font-bold">Saldo</span>
-            <span className="font-bold">{todayNet < 0 && '-'}{Math.abs(todayNet).toLocaleString('id-ID')}</span>
-          </div>
-        </div>
-      </div>
 
-      <div className="neumorphic-card p-3 border-2 border-foreground">
-        <div className="text-xs text-muted-foreground mb-2">BULAN INI</div>
-        <div className="space-y-1 text-xs">
-          <div className="flex justify-between">
-            <span>Masuk</span>
-            <span className="font-bold">{monthlyIncome.toLocaleString('id-ID')}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Keluar</span>
-            <span className="font-bold">{monthlyExpense.toLocaleString('id-ID')}</span>
-          </div>
-          <div className="flex justify-between border-t border-border pt-1">
-            <span className="font-bold">Saldo</span>
-            <span className="font-bold">{monthlyNet < 0 && '-'}{Math.abs(monthlyNet).toLocaleString('id-ID')}</span>
+          <div className="rounded-lg border bg-card p-4">
+            <div className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground">
+              Bulan ini
+            </div>
+            <div className="space-y-2 text-sm">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <ArrowUpRight className="h-4 w-4 text-success" />
+                  Masuk
+                </span>
+                <span className="font-semibold tabular-nums">
+                  Rp {monthlyIncome.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <ArrowDownRight className="h-4 w-4 text-destructive" />
+                  Keluar
+                </span>
+                <span className="font-semibold tabular-nums">
+                  Rp {monthlyExpense.toLocaleString('id-ID')}
+                </span>
+              </div>
+              <div className="mt-3 flex items-baseline justify-between border-t pt-3">
+                <span className="text-sm font-semibold">Saldo</span>
+                <span className="font-semibold tabular-nums">
+                  {monthlyNet < 0 && '-'}Rp {Math.abs(monthlyNet).toLocaleString('id-ID')}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

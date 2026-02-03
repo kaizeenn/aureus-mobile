@@ -4,11 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Sun, Moon } from 'lucide-react';
 
 const ThemeToggle = () => {
-  const [theme, setTheme] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('theme') || 'light';
-    }
-    return 'light';
+  const [theme, setTheme] = React.useState<'light' | 'dark'>(() => {
+    if (typeof window === 'undefined') return 'light';
+    const stored = localStorage.getItem('theme');
+    if (stored === 'light' || stored === 'dark') return stored;
+    return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ? 'dark' : 'light';
   });
 
   React.useEffect(() => {
@@ -27,13 +27,13 @@ const ThemeToggle = () => {
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="w-10 h-10  transition-smooth hover:scale-110 hover:bg-primary/10"
+      className="h-10 w-10 hover:bg-muted"
       aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
     >
       {theme === 'light' ? (
-        <Moon className="h-5 w-5 transition-smooth" />
+        <Moon className="h-5 w-5" />
       ) : (
-        <Sun className="h-5 w-5 transition-smooth" />
+        <Sun className="h-5 w-5" />
       )}
     </Button>
   );
