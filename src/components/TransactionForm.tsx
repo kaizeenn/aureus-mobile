@@ -20,6 +20,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
     amount: '',
     category: '',
     description: '',
+    date: new Date().toISOString().split('T')[0],
   });
 
   const categories = {
@@ -45,6 +46,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
     ]
   };
 
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -67,31 +70,33 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
       return;
     }
 
-    onAddTransaction({
-      type: formData.type,
-      amount,
-      category: formData.category,
-      description: formData.description,
-      date: new Date().toISOString(),
-    });
+    // KA-CHING EFFECT!
+    setIsAnimating(true);
 
-    setFormData({
-      type: 'expense',
-      amount: '',
-      category: '',
-      description: '',
-    });
-  };
+    // Use the selected date and set time to current time
+    const selectedDate = new Date(formData.date);
+    const now = new Date();
+    selectedDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
 
-  const getCurrentDate = () => {
-    const today = new Date();
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    };
-    return today.toLocaleDateString('id-ID', options);
+    // Delay actual submit to show animation
+    setTimeout(() => {
+      onAddTransaction({
+        type: formData.type,
+        amount,
+        category: formData.category,
+        description: formData.description,
+        date: selectedDate.toISOString(),
+      });
+
+      setFormData({
+        type: 'expense',
+        amount: '',
+        category: '',
+        description: '',
+        date: new Date().toISOString().split('T')[0],
+      });
+      setIsAnimating(false);
+    }, 1200);
   };
 
   return (
@@ -108,15 +113,19 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
         </div>
         
         <div className="mb-6">
-          {/* Tanggal Hari Ini */}
-          <div className="rounded-lg border bg-primary/5 border-primary/20 p-3">
-            <div className="flex items-center gap-2 text-primary">
-              <Square className="h-4 w-4" />
-              <span className="text-sm font-medium">{getCurrentDate()}</span>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="date" className="text-foreground font-medium">Tanggal *</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+                className="neumorphic-inset mt-1.5"
+              />
             </div>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 mt-6">
             <div>
               <Label htmlFor="type" className="text-foreground font-medium">Tipe Transaksi *</Label>
               <Select 
@@ -191,6 +200,27 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
           </form>
         </div>
       </div>
+
+      {/* Ka-ching Coins Overlay */}
+      {isAnimating && (
+        <div className="fixed inset-0 pointer-events-none z-[60] overflow-hidden flex justify-center">
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute text-yellow-400 animate-coin-drop"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: -50,
+                animationDuration: `${0.5 + Math.random() * 1}s`,
+                animationDelay: `${Math.random() * 0.5}s`,
+                fontSize: `${20 + Math.random() * 30}px`,
+              }}
+            >
+               💰
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -8,16 +8,16 @@ const AboutSection: React.FC = () => {
         <div className="rounded-xl border bg-card p-8 text-center space-y-6 shadow-sm">
           {/* Title */}
           <h2 className="text-2xl font-bold text-foreground">
-            Tentang
+            hi there! 
           </h2>
 
           {/* Subtitle */}
           <p className="text-sm text-muted-foreground font-medium">
-            Aureus adalah aplikasi pencatat keuangan sederhana yang berjalan sepenuhnya di perangkat Anda.
+            Thanks for using my app! This project is open-source and available on GitHub. Feel free to check it out, contribute, or report any issues you find.
           </p>
 
           {/* Social Links */}
-          <div className="flex items-center justify-center gap-6 py-4">
+          <div className="flex flex-wrap items-center justify-center gap-4 py-4">
             {/* Instagram */}
             <a
               href="https://instagram.com/rmeydani_"
@@ -44,7 +44,7 @@ const AboutSection: React.FC = () => {
           {/* Humble Quote */}
           <div className="pt-4 border-t border-border">
             <p className="text-sm text-muted-foreground italic">
-              Dibuat untuk pencatatan harian yang cepat, rapi, dan mudah ditinjau.
+              "how to center a div?"
             </p>
           </div>
 

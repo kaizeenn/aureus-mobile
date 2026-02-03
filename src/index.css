@@ -1,350 +1,217 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-100%);
-  }
-}
-
 @layer base {
   :root {
-    /* Light */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* 
+      YELLOW PASTEL PALETTE - LIGHT MODE 
+      Theme: "Lemon Meringue & Sunlight"
+    */
+    --background: 48 100% 97%;     /* Ultra-pale cream yellow */
+    --foreground: 35 40% 20%;      /* Deep warm brown text (no black) */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 48 60% 92%;           /* Soft creamy card background */
+    --card-foreground: 35 40% 20%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 48 100% 97%;
+    --popover-foreground: 35 40% 20%;
 
-    /* Brand accent: warm gold */
-    --primary: 45 93% 47%;
-    --primary-foreground: 48 100% 96%;
+    /* Primary Action - A vibrant but pastel sunny yellow */
+    --primary: 45 100% 60%;
+    --primary-foreground: 35 50% 15%; /* Dark brown text on yellow buttons */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - A softer, buttery yellow */
+    --secondary: 48 80% 88%;
+    --secondary-foreground: 35 40% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted - For backgrounds/disabled states */
+    --muted: 48 40% 85%;
+    --muted-foreground: 38 20% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - Used for hovers */
+    --accent: 45 90% 80%;
+    --accent-foreground: 35 40% 20%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive - Deep Amber (Yellow-adjacent) instead of Red */
+    --destructive: 35 90% 60%;
+    --destructive-foreground: 48 100% 95%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 45 93% 47%;
+    /* Borders - Soft gold/tan */
+    --border: 45 40% 80%;
+    --input: 45 40% 80%;
+    --ring: 45 100% 50%; /* Focus ring */
 
-    --success: 142.1 76.2% 36.3%;
-    --success-foreground: 210 40% 98%;
+    /* Success - Greenish Yellow / Chartreuse (Yellow-dominant) */
+    --success: 65 80% 45%;
+    --success-foreground: 48 100% 95%;
 
-    --radius: 0.75rem;
-
-    --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.06);
-    --shadow-elev-2: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --radius: 1rem; /* Rounder, friendlier corners */
   }
 
   .dark {
-    /* Dark */
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* 
+      YELLOW PASTEL PALETTE - DARK MODE 
+      Theme: "Black Pastel & Lemon"
+    */
+    --background: 0 0% 9%;         /* Matte Black */
+    --foreground: 60 20% 96%;      /* Soft Cream White */
 
-    --card: 222.2 84% 6.5%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 13%;             /* Dark Grey Card */
+    --card-foreground: 60 20% 96%;
 
-    --popover: 222.2 84% 6.5%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 60 20% 96%;
 
-    --primary: 45 96% 55%;
-    --primary-foreground: 222.2 84% 4.9%;
+    /* Primary - Vibrant Pastel Yellow (High Contrast against Black) */
+    --primary: 48 90% 65%;
+    --primary-foreground: 0 0% 10%; /* Black text on yellow */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    /* Secondary - Dark Matte Grey */
+    --secondary: 0 0% 18%;
+    --secondary-foreground: 60 20% 96%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 48 90% 65%;
 
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 210 40% 98%;
+    /* Destructive - Pastel Red/Coral */
+    --destructive: 0 70% 65%;
+    --destructive-foreground: 60 20% 96%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 45 96% 55%;
-
-    --success: 142.1 70.6% 45.3%;
-    --success-foreground: 210 40% 98%;
-
-    --shadow-elev-1: 0 1px 2px rgba(0, 0, 0, 0.35);
-    --shadow-elev-2: 0 10px 28px rgba(0, 0, 0, 0.55);
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 48 90% 65%;
+    
+    /* Success - Pastel Lime */
+    --success: 85 70% 65%;
+    --success-foreground: 0 0% 10%;
   }
-}
-
-/* Typography - Poppins Font */
-html {
-  font-family: 'Poppins', sans-serif;
-}
-
-body {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-}
-
-/* Large Display Typography */
-.text-display {
-  font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 1.1;
-}
-
-.text-headline {
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
-.text-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-.text-body-large {
-  font-size: 1.125rem;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-
-.text-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
-}
-
-.text-caption {
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.01em;
 }
 
 @layer base {
   * {
     @apply border-border;
   }
-
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground transition-colors duration-500 font-sans;
+  }
+  
+  /* Selection color overrides */
+  ::selection {
+    @apply bg-primary text-primary-foreground;
   }
 }
 
-/* Custom animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* 
+  USELESS ANIMATIONS & DECORATIONS 
+*/
+
+@keyframes drift {
+  from { transform: translateX(-20vw); }
+  to { transform: translateX(120vw); }
 }
 
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
 }
 
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-3deg); }
+  50% { transform: rotate(3deg); }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out forwards;
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
 }
 
-.animate-slide-up {
-  animation: slideUp 0.4s ease-out forwards;
+@keyframes marquee {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
 }
 
-.animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
+.animate-drift {
+  animation: drift 60s linear infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes coin-drop {
+  0% { transform: translateY(-50px) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+.animate-coin-drop {
+  animation: coin-drop 1s ease-in forwards;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+.animate-wiggle {
+  animation: wiggle 2s ease-in-out infinite;
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animate-marquee {
+  animation: marquee 20s linear infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+/* Glassmorphism for the yellow theme */
+.yellow-glass {
+  @apply bg-background/60 backdrop-blur-md border border-white/20 shadow-lg;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-secondary/50;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-primary/50 rounded-full hover:bg-primary transition-colors;
+}
+
+/* Typography Overrides for that "Retro Receipt" feel */
+h1, h2, h3, h4, h5, h6 {
+  @apply tracking-tight;
+}
+
+.font-display {
+  font-family: 'Courier Prime', 'Courier New', monospace; /* Monospace for receipt feel */
+  @apply tracking-tighter font-bold;
 }
 
 @layer utilities {
-  /* Surface styles (kept for existing components) */
-  .neumorphic-card {
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-elev-1);
-  }
-
-  .neumorphic-card:hover {
-    box-shadow: var(--shadow-elev-2);
-  }
-
-  /* Subtle inset for inputs/filters */
-  .neumorphic-inset {
-    background: hsl(var(--background));
-    border: 1px solid hsl(var(--border));
-    border-radius: calc(var(--radius) / 2);
-  }
-
-  .neumorphic-inset:focus-within {
-    border-color: hsl(var(--primary));
-    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
-  }
-
-  /* Flat Card */
-  .neumorphic-flat {
-    background: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-  }
-
-  /* Frosted Glass Effect */
-  .glass-effect {
-    background: hsl(var(--background) / 0.72);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid hsl(var(--border));
-    border-radius: var(--radius);
-  }
-
-  /* Brand gradient text */
-  .gradient-text {
-    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.72));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-weight: 700;
-  }
-
-  .gradient-bg {
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.9), hsl(var(--primary) / 0.7));
-  }
-
-  .text-accent {
-    color: hsl(var(--primary));
-  }
-
-  .text-success {
-    color: hsl(var(--success));
-    font-weight: 600;
-  }
-
-  .bg-success {
-    background-color: hsl(var(--success));
-  }
-
-  .border-success {
-    border-color: hsl(var(--success));
-  }
-
-  /* Typography Utilities */
-  .font-display {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 800;
-    letter-spacing: -0.04em;
-  }
-
-  .font-bold {
-    font-weight: 700;
-  }
-
-  .font-semibold {
-    font-weight: 600;
-  }
-
-  .font-medium {
-    font-weight: 500;
-  }
-
-  /* Smooth Transitions */
-  .transition-smooth {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* Custom Scrollbar - Yellow Accent */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: hsl(var(--muted));
-    border-radius: 4px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground));
-    border-radius: 4px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--primary));
-  }
-
-  /* Safe area for mobile */
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  /* Bottom nav spacing */
+  /* Bottom nav spacing: Height of nav (4rem) + extra space (2rem) + safe area */
   .pb-nav {
-    padding-bottom: calc(4rem + env(safe-area-inset-bottom));
-  }
-
-  /* Highlight/Selection */
-  ::selection {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
 }
-

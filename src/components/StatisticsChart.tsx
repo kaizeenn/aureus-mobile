@@ -23,6 +23,7 @@ interface StatisticsChartProps {
   transactions: Transaction[];
   selectedMonth: number;
   selectedYear: number;
+  isAllTime?: boolean;
 }
 
 function formatCompactId(value: number) {
@@ -33,25 +34,53 @@ function formatCompactId(value: number) {
   return value.toString();
 }
 
-const StatisticsChart: React.FC<StatisticsChartProps> = ({ transactions, selectedMonth, selectedYear }) => {
-  const monthlyTransactions = transactions.filter((t) => {
-    const d = new Date(t.date);
-    return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
-  });
+const StatisticsChart: React.FC<StatisticsChartProps> = ({ transactions, selectedMonth, selectedYear, isAllTime = false }) => {
+  let chartData: { label: string; income: number; expense: number }[] = [];
 
-  const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-  const totalsByDay = Array.from({ length: daysInMonth }, (_, idx) => {
-    const day = idx + 1;
-    return { day, income: 0, expense: 0 };
-  });
+  if (isAllTime) {
+    // Group by Month-Year for All Time view
+    const groups: Record<string, { label: string; income: number; expense: number; dateVal: number }> = {};
+    
+    for (const t of transactions) {
+       const d = new Date(t.date);
+       const key = `${d.getFullYear()}-${d.getMonth()}`; // unique key
+       // Create a sortable value (year * 12 + month)
+       const dateVal = d.getFullYear() * 12 + d.getMonth();
+       
+       if (!groups[key]) {
+         // Format label as "Jan 24"
+         const label = d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
+         groups[key] = { label, income: 0, expense: 0, dateVal };
+       }
+       
+       if (t.type === 'income') groups[key].income += t.amount;
+       if (t.type === 'expense') groups[key].expense += t.amount;
+    }
+    
+    // Convert to array and sort chronologically
+    chartData = Object.values(groups).sort((a, b) => a.dateVal - b.dateVal);
+    
+  } else {
+    // Existing Daily logic
+    const monthlyTransactions = transactions.filter((t) => {
+      const d = new Date(t.date);
+      return d.getMonth() === selectedMonth && d.getFullYear() === selectedYear;
+    });
 
-  for (const t of monthlyTransactions) {
-    const d = new Date(t.date);
-    const day = d.getDate();
-    const bucket = totalsByDay[day - 1];
-    if (!bucket) continue;
-    if (t.type === 'income') bucket.income += t.amount;
-    if (t.type === 'expense') bucket.expense += t.amount;
+    const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    chartData = Array.from({ length: daysInMonth }, (_, idx) => {
+      const day = idx + 1;
+      return { label: day.toString(), income: 0, expense: 0 };
+    });
+
+    for (const t of monthlyTransactions) {
+      const d = new Date(t.date);
+      const day = d.getDate();
+      const bucket = chartData[day - 1];
+      if (!bucket) continue;
+      if (t.type === 'income') bucket.income += t.amount;
+      if (t.type === 'expense') bucket.expense += t.amount;
+    }
   }
 
   return (
@@ -59,7 +88,7 @@ const StatisticsChart: React.FC<StatisticsChartProps> = ({ transactions, selecte
       <CardHeader className="pb-4">
         <CardTitle className="flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-primary" />
-          Tren Harian
+          {isAllTime ? 'Tren Bulanan (All-Time)' : 'Tren Harian'}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -76,15 +105,14 @@ const StatisticsChart: React.FC<StatisticsChartProps> = ({ transactions, selecte
             },
           }}
         >
-          <BarChart data={totalsByDay} margin={{ left: 8, right: 8, top: 8 }}>
+          <BarChart data={chartData} margin={{ left: 8, right: 8, top: 8 }}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="day"
+              dataKey="label"
               tickLine={false}
               axisLine={false}
               interval="preserveStartEnd"
               tickMargin={8}
-              tickFormatter={(v) => String(v)}
             />
             <YAxis
               tickLine={false}
@@ -96,7 +124,7 @@ const StatisticsChart: React.FC<StatisticsChartProps> = ({ transactions, selecte
               cursor={false}
               content={
                 <ChartTooltipContent
-                  labelFormatter={(label) => `Tanggal ${label}`}
+                  labelFormatter={(label) => isAllTime ? label : `Tanggal ${label}`}
                   formatter={(value, name) => {
                     const n = typeof value === 'number' ? value : Number(value);
                     const label = name === 'income' ? 'Masuk' : 'Keluar';

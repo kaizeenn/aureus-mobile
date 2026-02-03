@@ -110,11 +110,38 @@ theme: {
 					to: {
 						height: '0'
 					}
+				},
+				float: {
+					'0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+					'50%': { transform: 'translateY(-10px) rotate(1deg)' },
+				},
+				'spin-slow': {
+					from: { transform: 'rotate(0deg)' },
+					to: { transform: 'rotate(360deg)' },
+				},
+				wiggle: {
+					'0%, 100%': { transform: 'rotate(-3deg)' },
+					'50%': { transform: 'rotate(3deg)' },
+				},
+				blob: {
+					'0%': { transform: 'translate(0px, 0px) scale(1)' },
+					'33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+					'66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+					'100%': { transform: 'translate(0px, 0px) scale(1)' },
+				},
+				marquee: {
+					'0%': { transform: 'translateX(100%)' },
+					'100%': { transform: 'translateX(-100%)' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				float: 'float 6s ease-in-out infinite',
+				'spin-slow': 'spin-slow 20s linear infinite',
+				wiggle: 'wiggle 2s ease-in-out infinite',
+				blob: 'blob 7s infinite',
+				marquee: 'marquee 20s linear infinite',
 			}
 		}
 	},

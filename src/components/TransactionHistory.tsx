@@ -48,7 +48,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
         {/* Search and Filter */}
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Cari transaksi..."
               value={searchTerm}
@@ -69,7 +69,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
               variant={filterType === 'income' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterType('income')}
-              className="text-green-600"
+              className="text-success"
             >
               Pemasukan
             </Button>
@@ -77,7 +77,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
               variant={filterType === 'expense' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setFilterType('expense')}
-              className="text-red-600"
+              className="text-destructive"
             >
               Pengeluaran
             </Button>
@@ -87,7 +87,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
       
       <CardContent>
         {filteredTransactions.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             {transactions.length === 0 
               ? 'Belum ada transaksi. Mulai tambahkan transaksi pertama Anda!'
               : 'Tidak ada transaksi yang sesuai dengan pencarian Anda.'
@@ -98,13 +98,13 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
             {filteredTransactions.map((transaction) => (
               <div
                 key={transaction.id}
-                className="flex items-center justify-between p-4 border  hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3 flex-1">
-                  <div className={`w-10 h-10  flex items-center justify-center ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                     transaction.type === 'income' 
-                      ? 'bg-green-100 text-green-600' 
-                      : 'bg-red-100 text-red-600'
+                      ? 'bg-success/20 text-success' 
+                      : 'bg-destructive/20 text-destructive'
                   }`}>
                     {transaction.type === 'income' ? (
                       <ArrowUp className="h-5 w-5" />
@@ -121,16 +121,16 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                     </div>
                     
                     {transaction.description && (
-                      <p className="text-sm text-gray-600 mb-1">{transaction.description}</p>
+                      <p className="text-sm text-foreground mb-1">{transaction.description}</p>
                     )}
                     
-                    <p className="text-xs text-gray-500">{formatDate(transaction.date)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(transaction.date)}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-3">
                   <div className={`text-lg font-semibold ${
-                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    transaction.type === 'income' ? 'text-success' : 'text-destructive'
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}Rp {transaction.amount.toLocaleString('id-ID')}
                   </div>
@@ -143,7 +143,7 @@ const TransactionHistory: React.FC<TransactionHistoryProps> = ({
                         onDeleteTransaction(transaction.id);
                       }
                     }}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   >
                     <X className="h-4 w-4" />
                   </Button>
