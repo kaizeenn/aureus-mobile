@@ -214,4 +214,13 @@ h1, h2, h3, h4, h5, h6 {
   .pb-nav {
     padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
+  
+  /* Safe area padding */
+  .safe-area-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+  
+  .safe-area-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
 }
