@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { Wallet, Transaction, Category } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/use-toast';
 import { Download, Upload, Copy } from 'lucide-react';
 import { downloadBackup, createBackup, importFromJson } from '@/lib/backup';
@@ -111,67 +110,54 @@ const BackupRestore: React.FC<BackupRestoreProps> = ({
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full gap-2">
-          <Download className="h-4 w-4" />
-          Backup & Restore
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-sm">
-        <DialogHeader>
-          <DialogTitle>Backup & Restore Data</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="p-4 bg-muted rounded-lg">
-            <p className="text-sm text-muted-foreground mb-3">
-              Cadangkan semua data Anda (akun, transaksi, kategori) dan pulihkan kapan saja.
-            </p>
-          </div>
+    <div className="space-y-4">
+      <div className="p-4 bg-muted rounded-lg">
+        <p className="text-sm text-muted-foreground">
+          Cadangkan semua data Anda (akun, transaksi, kategori) dan pulihkan kapan saja.
+        </p>
+      </div>
 
-          <div className="space-y-2">
-            <h3 className="font-semibold text-sm">Ekspor Data</h3>
-            <div className="space-y-2">
-              <Button onClick={handleExport} className="w-full gap-2" variant="default">
-                <Download className="h-4 w-4" />
-                Unduh sebagai JSON
-              </Button>
-              <Button onClick={handleCopyJson} className="w-full gap-2" variant="outline">
-                <Copy className="h-4 w-4" />
-                Salin ke Clipboard
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h3 className="font-semibold text-sm">Impor Data</h3>
-            <div className="space-y-2">
-              <Button onClick={handleImportClick} className="w-full gap-2" variant="outline">
-                <Upload className="h-4 w-4" />
-                Pilih File JSON
-              </Button>
-              <Button onClick={handlePasteJson} className="w-full gap-2" variant="outline">
-                <Copy className="h-4 w-4" />
-                Paste dari Clipboard
-              </Button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".json"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </div>
-          </div>
-
-          <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
-            <p className="text-xs text-yellow-900 dark:text-yellow-100">
-              ⚠️ Memulihkan dari backup akan mengganti semua data saat ini. Pastikan Anda telah membuat backup sebelumnya.
-            </p>
-          </div>
+      <div className="space-y-2">
+        <h3 className="font-semibold text-sm">Ekspor Data</h3>
+        <div className="space-y-2">
+          <Button onClick={handleExport} className="w-full gap-2" variant="default">
+            <Download className="h-4 w-4" />
+            Unduh sebagai JSON
+          </Button>
+          <Button onClick={handleCopyJson} className="w-full gap-2" variant="outline">
+            <Copy className="h-4 w-4" />
+            Salin ke Clipboard
+          </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="font-semibold text-sm">Impor Data</h3>
+        <div className="space-y-2">
+          <Button onClick={handleImportClick} className="w-full gap-2" variant="outline">
+            <Upload className="h-4 w-4" />
+            Pilih File JSON
+          </Button>
+          <Button onClick={handlePasteJson} className="w-full gap-2" variant="outline">
+            <Copy className="h-4 w-4" />
+            Paste dari Clipboard
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
+      </div>
+
+      <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
+        <p className="text-xs text-yellow-900 dark:text-yellow-100">
+          ⚠️ Memulihkan dari backup akan mengganti semua data saat ini. Pastikan Anda telah membuat backup sebelumnya.
+        </p>
+      </div>
+    </div>
   );
 };
 

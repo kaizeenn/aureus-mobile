@@ -25,6 +25,11 @@ const TransferBetweenAccounts: React.FC<TransferBetweenAccountsProps> = ({
     description: '',
   });
 
+  const formatRupiah = (value: string) => {
+    if (!value) return '';
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -55,7 +60,7 @@ const TransferBetweenAccounts: React.FC<TransferBetweenAccountsProps> = ({
       return;
     }
 
-    const amount = Number.parseFloat(formData.amount);
+    const amount = Number(formData.amount);
     if (!Number.isFinite(amount) || amount <= 0) {
       toast({
         variant: 'destructive',
@@ -80,8 +85,8 @@ const TransferBetweenAccounts: React.FC<TransferBetweenAccountsProps> = ({
       id: `transfer-${Date.now()}`,
       type: 'transfer',
       amount,
-      category: 'Transfer Antar Akun',
-      description: formData.description || 'Transfer antar akun',
+      category: 'Pemindahan Dana Antar Akun',
+      description: formData.description || 'Pemindahan dana antar akun',
       date: new Date().toISOString(),
       walletId: formData.fromWalletId, // Primary wallet (from)
       fromWalletId: formData.fromWalletId,
@@ -112,12 +117,12 @@ const TransferBetweenAccounts: React.FC<TransferBetweenAccountsProps> = ({
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold flex items-center gap-2">
           <Send className="h-4 w-4" />
-          Transfer Antar Akun
+          Pemindahan Dana Antar Akun
         </h3>
         <DialogTrigger asChild>
           <Button size="sm" variant="outline" className="gap-2">
             <Send className="h-4 w-4" />
-            Mulai Transfer
+            Mulai Pemindahan
           </Button>
         </DialogTrigger>
       </div>
@@ -125,7 +130,7 @@ const TransferBetweenAccounts: React.FC<TransferBetweenAccountsProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Zap className="h-5 w-5 text-primary" />
-            Transfer Antar Akun
+            Pemindahan Dana Antar Akun
           </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -167,12 +172,14 @@ const TransferBetweenAccounts: React.FC<TransferBetweenAccountsProps> = ({
             <Label htmlFor="amount">Jumlah (Rp)</Label>
             <Input
               id="amount"
-              type="number"
+              type="text"
+              inputMode="numeric"
               placeholder="0"
-              value={formData.amount}
-              onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              min="0"
-              step="1000"
+              value={formatRupiah(formData.amount)}
+              onChange={(e) => {
+                const digitsOnly = e.target.value.replace(/\D/g, '');
+                setFormData({ ...formData, amount: digitsOnly });
+              }}
             />
           </div>
 
@@ -198,7 +205,7 @@ const TransferBetweenAccounts: React.FC<TransferBetweenAccountsProps> = ({
 
           <Button type="submit" className="w-full gap-2">
             <Send className="h-4 w-4" />
-            Transfer Sekarang
+            Pindahkan Dana
           </Button>
         </form>
       </DialogContent>

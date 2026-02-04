@@ -51,13 +51,27 @@ export const calculateWalletBalance = (
   transactions: Transaction[]
 ): number => {
   return transactions.reduce((balance, transaction) => {
-    if (transaction.walletId !== walletId) return balance;
-
     if (transaction.type === 'income') {
-      return balance + transaction.amount;
-    } else if (transaction.type === 'expense') {
-      return balance - transaction.amount;
+      return transaction.walletId === walletId
+        ? balance + transaction.amount
+        : balance;
     }
+
+    if (transaction.type === 'expense') {
+      return transaction.walletId === walletId
+        ? balance - transaction.amount
+        : balance;
+    }
+
+    if (transaction.type === 'transfer') {
+      if (transaction.fromWalletId === walletId) {
+        return balance - transaction.amount;
+      }
+      if (transaction.toWalletId === walletId) {
+        return balance + transaction.amount;
+      }
+    }
+
     return balance;
   }, 0);
 };

@@ -11,6 +11,7 @@ interface CategoriesPageProps {
   onAddCategory: (category: Category) => void;
   onDeleteCategory: (id: string) => void;
   onBack: () => void;
+  onNavigateTab: (tab: NavTab) => void;
 }
 
 const CategoriesPage: React.FC<CategoriesPageProps> = ({
@@ -18,6 +19,7 @@ const CategoriesPage: React.FC<CategoriesPageProps> = ({
   onAddCategory,
   onDeleteCategory,
   onBack,
+  onNavigateTab,
 }) => {
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -53,13 +55,14 @@ const CategoriesPage: React.FC<CategoriesPageProps> = ({
               categories={categories}
               onAddCategory={onAddCategory}
               onDeleteCategory={onDeleteCategory}
+              inline
             />
           </div>
         </div>
       </main>
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab="more" onTabChange={() => {}} />
+      <BottomNav activeTab="more" onTabChange={onNavigateTab} />
     </div>
   );
 };

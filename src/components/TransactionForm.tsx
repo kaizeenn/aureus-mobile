@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,7 @@ import { X, Square, Hash } from 'lucide-react';
 import { Transaction, Wallet, Category } from '@/types';
 
 interface TransactionFormProps {
-  onAddTransaction: (transaction: Omit<Transaction, 'id' | 'walletId'>) => void;
+  onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   onClose: () => void;
   wallets: Wallet[];
   categories: Category[];
@@ -30,7 +30,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     category: '',
     description: '',
     date: new Date().toISOString().split('T')[0],
+    walletId: selectedWalletId || wallets[0]?.id || '',
   });
+
+  const formatRupiah = (value: string) => {
+    if (!value) return '';
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
 
   const filteredCategories = useMemo(
     () => categories.filter(c => c.type === formData.type),
@@ -39,19 +45,28 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
   const [isAnimating, setIsAnimating] = useState(false);
 
+  useEffect(() => {
+    if (!formData.walletId) {
+      setFormData(prev => ({
+        ...prev,
+        walletId: selectedWalletId || wallets[0]?.id || '',
+      }));
+    }
+  }, [selectedWalletId, wallets, formData.walletId]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.amount || !formData.description || !formData.category) {
+    if (!formData.amount || !formData.category || !formData.walletId) {
       toast({
         variant: "destructive",
         title: "Lengkapi form",
-        description: "Jumlah, kategori, dan keterangan wajib diisi.",
+        description: "Jumlah, kategori, dan dompet wajib diisi.",
       });
       return;
     }
 
-    const amount = Number.parseFloat(formData.amount);
+    const amount = Number(formData.amount);
     if (!Number.isFinite(amount) || amount <= 0) {
       toast({
         variant: "destructive",
@@ -77,6 +92,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         category: formData.category,
         description: formData.description,
         date: selectedDate.toISOString(),
+        walletId: formData.walletId,
       });
 
       setFormData({
@@ -85,6 +101,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
         category: '',
         description: '',
         date: new Date().toISOString().split('T')[0],
+        walletId: selectedWalletId || wallets[0]?.id || '',
       });
       setIsAnimating(false);
     }, 1200);
@@ -136,6 +153,29 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </div>
 
             <div>
+              <Label htmlFor="wallet" className="text-foreground font-medium">Sumber Dana (Dompet) *</Label>
+              <Select
+                value={formData.walletId}
+                onValueChange={(value) => setFormData({ ...formData, walletId: value })}
+                disabled={wallets.length === 0}
+              >
+                <SelectTrigger className="neumorphic-inset mt-1.5">
+                  <SelectValue placeholder="Pilih dompet..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {wallets.map((wallet) => (
+                    <SelectItem key={wallet.id} value={wallet.id}>
+                      <span className="flex items-center gap-2">
+                        <span>{wallet.icon}</span>
+                        <span>{wallet.name}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <Label htmlFor="category" className="text-foreground font-medium">Kategori *</Label>
               <Select 
                 value={formData.category} 
@@ -160,24 +200,27 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Label htmlFor="amount" className="text-foreground font-medium">Jumlah (Rp) *</Label>
               <Input
                 id="amount"
-                type="number"
+                type="text"
+                inputMode="numeric"
                 placeholder="0"
-                value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                value={formatRupiah(formData.amount)}
+                onChange={(e) => {
+                  const digitsOnly = e.target.value.replace(/\D/g, '');
+                  setFormData({ ...formData, amount: digitsOnly });
+                }}
                 required
                 className="neumorphic-inset mt-1.5"
               />
             </div>
 
             <div>
-              <Label htmlFor="description" className="text-foreground font-medium">Keterangan *</Label>
+              <Label htmlFor="description" className="text-foreground font-medium">Keterangan (Opsional)</Label>
               <Textarea
                 id="description"
                 placeholder="Masukkan keterangan transaksi..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                required
                 className="neumorphic-inset mt-1.5 resize-none"
               />
             </div>

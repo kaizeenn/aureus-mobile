@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, ArrowUp, ArrowDown, PieChart, Layers } from 'lucide-react';
+import { X, ArrowUp, ArrowDown, PieChart as PieChartIcon, Layers } from 'lucide-react';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
+import { PieChart, Pie, Cell, Legend } from 'recharts';
 import { Transaction } from '@/pages/Index';
 
 interface TransactionByCategoryProps {
@@ -50,6 +52,31 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
 
   const getCategoryTotal = (txs: Transaction[]) => txs.reduce((sum, t) => sum + t.amount, 0);
 
+   const expenseByCategory = monthlyTransactions
+      .filter((t) => t.type === 'expense')
+      .reduce((acc, t) => {
+         acc[t.category] = (acc[t.category] || 0) + t.amount;
+         return acc;
+      }, {} as Record<string, number>);
+
+   const expensePieData = Object.entries(expenseByCategory).map(([category, value]) => ({
+      category,
+      value,
+   }));
+
+   const PIE_COLORS = [
+      '#F59E0B', '#F97316', '#FACC15', '#FBBF24', '#FDBA74',
+      '#EAB308', '#FDE047', '#FEF08A', '#FDE68A', '#FCD34D',
+   ];
+
+   const pieConfig = expensePieData.reduce((acc, item, index) => {
+      acc[item.category] = {
+         label: item.category,
+         color: PIE_COLORS[index % PIE_COLORS.length],
+      };
+      return acc;
+   }, {} as ChartConfig);
+
   return (
     <div className="space-y-6">
        {/* Filter Header */}
@@ -91,9 +118,56 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
        </div>
 
        {/* Masonry / Grid Layout for Categories */}
-       {Object.keys(transactionsByCategory).length === 0 ? (
+          {expensePieData.length > 0 && (
+               <Card className="border-primary/10">
+                  <CardHeader className="pb-2">
+                     <CardTitle className="text-base flex items-center gap-2">
+                        <span className="h-2 w-2 rounded-full bg-primary" />
+                        Pengeluaran per Kategori
+                     </CardTitle>
+                     <CardDescription>Distribusi pengeluaran Anda</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                     <ChartContainer
+                        config={pieConfig}
+                        className="h-64 w-full"
+                     >
+                        <PieChart>
+                           <Pie
+                              data={expensePieData}
+                              dataKey="value"
+                              nameKey="category"
+                              innerRadius={50}
+                              outerRadius={90}
+                              paddingAngle={2}
+                           >
+                              {expensePieData.map((entry, index) => (
+                                 <Cell key={entry.category} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                              ))}
+                           </Pie>
+                           <ChartTooltip
+                              content={
+                                 <ChartTooltipContent
+                                    nameKey="category"
+                                    formatter={(value) => `Rp ${Number(value).toLocaleString('id-ID')}`}
+                                 />
+                              }
+                           />
+                           <Legend
+                              verticalAlign="bottom"
+                              align="center"
+                              iconType="circle"
+                              wrapperStyle={{ paddingTop: 8, fontSize: 12 }}
+                           />
+                        </PieChart>
+                     </ChartContainer>
+                  </CardContent>
+               </Card>
+          )}
+
+          {Object.keys(transactionsByCategory).length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-2xl bg-muted/20">
-             <PieChart className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4 animate-spin-slow" />
+                   <PieChartIcon className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4 animate-spin-slow" />
              <p className="text-muted-foreground font-medium">Tidak ada data untuk ditampilkan</p>
           </div>
        ) : (

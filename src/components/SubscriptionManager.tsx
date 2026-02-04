@@ -43,6 +43,11 @@ const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ onAddTransact
     createTransactionNow: true 
   });
 
+  const formatRupiah = (value: string) => {
+    if (!value) return '';
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   // Load subscriptions
   useEffect(() => {
     const saved = localStorage.getItem('subscriptions');
@@ -224,10 +229,14 @@ const SubscriptionManager: React.FC<SubscriptionManagerProps> = ({ onAddTransact
                 <div className="space-y-2">
                   <Label>Biaya (Rp)</Label>
                   <Input 
-                    type="number" 
+                    type="text" 
+                    inputMode="numeric"
                     placeholder="50000" 
-                    value={newSub.amount}
-                    onChange={e => setNewSub({...newSub, amount: e.target.value})}
+                    value={formatRupiah(newSub.amount)}
+                    onChange={e => {
+                      const digitsOnly = e.target.value.replace(/\D/g, '');
+                      setNewSub({...newSub, amount: digitsOnly});
+                    }}
                     required
                   />
                 </div>

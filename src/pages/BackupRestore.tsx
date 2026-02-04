@@ -1,7 +1,7 @@
 import React from 'react';
 import { Wallet, Category, Transaction } from '@/types';
 import Header from '@/components/Header';
-import BottomNav from '@/components/BottomNav';
+import BottomNav, { NavTab } from '@/components/BottomNav';
 import BackupRestoreComponent from '@/components/BackupRestore';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ interface BackupRestorePageProps {
   categories: Category[];
   onRestore: (data: { wallets: Wallet[]; transactions: Transaction[]; categories: Category[] }) => void;
   onBack: () => void;
+  onNavigateTab: (tab: NavTab) => void;
 }
 
 const BackupRestorePage: React.FC<BackupRestorePageProps> = ({
@@ -20,6 +21,7 @@ const BackupRestorePage: React.FC<BackupRestorePageProps> = ({
   categories,
   onRestore,
   onBack,
+  onNavigateTab,
 }) => {
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -62,7 +64,7 @@ const BackupRestorePage: React.FC<BackupRestorePageProps> = ({
       </main>
 
       {/* Bottom Navigation */}
-      <BottomNav activeTab="more" onTabChange={() => {}} />
+      <BottomNav activeTab="more" onTabChange={onNavigateTab} />
     </div>
   );
 };

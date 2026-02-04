@@ -42,6 +42,11 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({
     amount: ''
   });
 
+  const formatRupiah = (value: string) => {
+    if (!value) return '';
+    return value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  };
+
   // Filter budgets and transactions for selected month/year
   const monthlyBudgets = budgets.filter(b => 
     b.month === selectedMonth && b.year === selectedYear
@@ -58,7 +63,7 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({
     if (newBudget.category && newBudget.amount) {
       onAddBudget({
         category: newBudget.category,
-        amount: parseFloat(newBudget.amount),
+        amount: Number(newBudget.amount),
         month: selectedMonth,
         year: selectedYear
       });
@@ -160,10 +165,14 @@ const BudgetManager: React.FC<BudgetManagerProps> = ({
                 </SelectContent>
               </Select>
               <Input
-                type="number"
+                type="text"
+                inputMode="numeric"
                 placeholder="Jumlah Budget"
-                value={newBudget.amount}
-                onChange={(e) => setNewBudget(prev => ({...prev, amount: e.target.value}))}
+                value={formatRupiah(newBudget.amount)}
+                onChange={(e) => {
+                  const digitsOnly = e.target.value.replace(/\D/g, '');
+                  setNewBudget(prev => ({...prev, amount: digitsOnly}));
+                }}
                 className="neumorphic-inset"
               />
               <div className="flex gap-2">

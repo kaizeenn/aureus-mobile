@@ -13,6 +13,7 @@ interface CategoryManagerProps {
   categories: Category[];
   onAddCategory: (category: Category) => void;
   onDeleteCategory: (id: string) => void;
+  inline?: boolean;
 }
 
 const CATEGORY_COLORS = [
@@ -29,8 +30,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
   categories,
   onAddCategory,
   onDeleteCategory,
+  inline = false,
 }) => {
   const [open, setOpen] = useState(false);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     type: 'expense' as 'income' | 'expense',
@@ -77,7 +80,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
       color: CATEGORY_COLORS[0],
       icon: CATEGORY_ICONS[0],
     });
-    setOpen(false);
+    setAddDialogOpen(false);
+    if (!inline) {
+      setOpen(false);
+    }
 
     toast({
       title: 'Berhasil',
@@ -88,20 +94,25 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
   const expenseCategories = categories.filter((c) => c.type === 'expense');
   const incomeCategories = categories.filter((c) => c.type === 'income');
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full gap-2">
-          <Tags className="h-4 w-4" />
-          Kelola Kategori
+  const content = (
+    <div className="w-full flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-semibold">Kelola Kategori</h3>
+          <p className="text-xs text-muted-foreground">Atur kategori pemasukan dan pengeluaran</p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          className="h-8 text-sm gap-2 rounded-full px-3"
+          onClick={() => setAddDialogOpen(true)}
+        >
+          <Plus className="h-3 w-3" />
+          Baru
         </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Kelola Kategori</DialogTitle>
-        </DialogHeader>
-        <Tabs defaultValue="all" className="w-full flex flex-col flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
+      </div>
+      <Tabs defaultValue="all" className="w-full flex flex-col flex-1 overflow-hidden">
+        <TabsList className="grid w-full grid-cols-3 flex-shrink-0 bg-muted/40 p-1 rounded-full">
             <TabsTrigger value="all">Semua</TabsTrigger>
             <TabsTrigger value="expense">Pengeluaran</TabsTrigger>
             <TabsTrigger value="income">Pemasukan</TabsTrigger>
@@ -109,21 +120,19 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
 
           {/* All Categories */}
           <TabsContent value="all" className="space-y-2 overflow-y-auto flex-1 scrollbar-hide">
-            {categories.filter((c) => c.isCustom).length === 0 ? (
+            {categories.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
-                Tidak ada kategori custom. Tambahkan kategori baru untuk memulai.
+                Belum ada kategori. Tambahkan kategori baru untuk memulai.
               </p>
             ) : (
               <div className="space-y-2">
-                {categories
-                  .filter((c) => c.isCustom)
-                  .map((category) => (
+                {categories.map((category) => (
                     <div
                       key={category.id}
-                      className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                    className="flex items-center justify-between rounded-lg border border-border/60 bg-card/60 px-3 py-2"
                     >
                       <div className="flex items-center gap-2">
-                        <span className="text-base">{category.icon}</span>
+                      <span className="text-base">{category.icon}</span>
                         <div>
                           <p className="font-medium text-sm">{category.name}</p>
                           <p className="text-xs text-muted-foreground">
@@ -131,22 +140,24 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                           </p>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          onDeleteCategory(category.id);
-                          toast({
-                            title: 'Berhasil',
-                            description: `Kategori ${category.name} telah dihapus`,
-                          });
-                        }}
-                        className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {category.isCustom && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            onDeleteCategory(category.id);
+                            toast({
+                              title: 'Berhasil',
+                              description: `Kategori ${category.name} telah dihapus`,
+                            });
+                          }}
+                        className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
-                  ))}
+                ))}
               </div>
             )}
           </TabsContent>
@@ -157,7 +168,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
               {expenseCategories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-card/60 px-3 py-2"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-base">{category.icon}</span>
@@ -177,7 +188,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                           description: `Kategori ${category.name} telah dihapus`,
                         });
                       }}
-                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                      className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -193,7 +204,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
               {incomeCategories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  className="flex items-center justify-between rounded-lg border border-border/60 bg-card/60 px-3 py-2"
                 >
                   <div className="flex items-center gap-2">
                     <span className="text-base">{category.icon}</span>
@@ -213,7 +224,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                           description: `Kategori ${category.name} telah dihapus`,
                         });
                       }}
-                      className="h-8 w-8 p-0 text-destructive hover:bg-destructive/10"
+                      className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -224,10 +235,12 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
           </TabsContent>
         </Tabs>
 
-        {/* Add Category Form - Compact */}
-        <div className="space-y-2 border-t pt-3 flex-shrink-0">
-          <h3 className="font-semibold text-sm">Tambah Kategori Baru</h3>
-          <form onSubmit={handleSubmit} className="space-y-3 max-h-72 overflow-y-auto scrollbar-hide pr-2">
+      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Tambah Kategori Baru</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-3 max-h-[60vh] overflow-y-auto scrollbar-hide pr-2">
             <div className="space-y-1">
               <Label htmlFor="category-name" className="text-xs">Nama Kategori</Label>
               <Input
@@ -287,12 +300,38 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
               </div>
             </div>
 
-            <Button type="submit" className="w-full h-8 text-sm" size="sm">
-              <Plus className="h-3 w-3 mr-1" />
-              Tambah Kategori
-            </Button>
+            <div className="flex gap-2">
+              <Button type="submit" className="flex-1 h-8 text-sm" size="sm">
+                <Plus className="h-3 w-3 mr-1" />
+                Simpan
+              </Button>
+              <Button type="button" variant="outline" className="h-8 text-sm" size="sm" onClick={() => setAddDialogOpen(false)}>
+                Batal
+              </Button>
+            </div>
           </form>
-        </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+
+  if (inline) {
+    return content;
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="w-full gap-2">
+          <Tags className="h-4 w-4" />
+          Kelola Kategori
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle>Kelola Kategori</DialogTitle>
+        </DialogHeader>
+        {content}
       </DialogContent>
     </Dialog>
   );

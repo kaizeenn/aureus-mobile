@@ -17,10 +17,11 @@ import SubscriptionManager from '@/components/SubscriptionManager';
 import AccountManager from '@/components/AccountManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import CategoriesPage from '@/pages/Categories';
-import BackupRestorePage from '@/pages/BackupRestore';
+import BackupRestoreComponent from '@/components/BackupRestore';
 import { Wallet, Category, Transaction } from '@/types';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_WALLETS } from '@/lib/constants';
 import { calculateWalletBalance } from '@/lib/backup';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const Index = () => {
   const [wallets, setWallets] = useState<Wallet[]>([]);
@@ -33,7 +34,8 @@ const Index = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isAllTime, setIsAllTime] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('home');
-  const [currentPage, setCurrentPage] = useState<'main' | 'categories' | 'backup'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'categories'>('main');
+  const [showBackupRestore, setShowBackupRestore] = useState(false);
 
   const months = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -193,27 +195,9 @@ const Index = () => {
           setCurrentPage('main');
           setActiveTab('more');
         }}
-      />
-    );
-  }
-
-  if (currentPage === 'backup') {
-    return (
-      <BackupRestorePage
-        wallets={wallets}
-        transactions={transactions}
-        categories={categories}
-        onRestore={(data) => {
-          setWallets(data.wallets);
-          setTransactions(data.transactions);
-          setCategories(data.categories);
-          if (data.wallets.length > 0) {
-            setSelectedWalletId(data.wallets[0].id);
-          }
-        }}
-        onBack={() => {
+        onNavigateTab={(tab) => {
           setCurrentPage('main');
-          setActiveTab('more');
+          setActiveTab(tab);
         }}
       />
     );
@@ -445,7 +429,7 @@ const Index = () => {
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </Button>
                   <Button
-                    onClick={() => setCurrentPage('backup')}
+                    onClick={() => setShowBackupRestore(true)}
                     className="h-14 w-full justify-between px-4"
                     variant="outline"
                   >
@@ -484,6 +468,29 @@ const Index = () => {
           categories={categories}
         />
       )}
+
+      {/* Backup & Restore Dialog */}
+      <Dialog open={showBackupRestore} onOpenChange={setShowBackupRestore}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Backup & Restore Data</DialogTitle>
+          </DialogHeader>
+          <BackupRestoreComponent
+            wallets={wallets}
+            transactions={transactions}
+            categories={categories}
+            onRestore={(wallets, transactions, categories) => {
+              setWallets(wallets);
+              setTransactions(transactions);
+              setCategories(categories);
+              if (wallets.length > 0) {
+                setSelectedWalletId(wallets[0].id);
+              }
+              setShowBackupRestore(false);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
