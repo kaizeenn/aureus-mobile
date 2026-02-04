@@ -1,4 +1,4 @@
-# Aureus - Personal Finance Tracking App
+# Aureus - Personal Finance Tracking APK
 
 Aureus is a personal finance tracking application built with React, TypeScript, and Capacitor. It supports multi-account wallets, transfers, custom categories, and JSON backup/restore.
 
