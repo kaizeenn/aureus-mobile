@@ -5,6 +5,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Square, ArrowUp, ArrowDown, File } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
+import { toast } from '@/components/ui/use-toast';
 
 interface MonthlyReportsProps {
   transactions: Transaction[];
@@ -41,7 +45,7 @@ const MonthlyReports: React.FC<MonthlyReportsProps> = ({ transactions }) => {
 
   const net = income - expense;
 
-  const downloadCSV = () => {
+  const downloadCSV = async () => {
     const csvData = [
       ['Laporan Bulanan', `${months[selectedMonth]} ${selectedYear}`],
       [''],
@@ -62,14 +66,43 @@ const MonthlyReports: React.FC<MonthlyReportsProps> = ({ transactions }) => {
     ];
 
     const csvContent = csvData.map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `laporan-${months[selectedMonth]}-${selectedYear}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const fileName = `laporan-${months[selectedMonth]}-${selectedYear}.csv`;
+
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // Mobile Logic: Write to filesystem then share
+        const result = await Filesystem.writeFile({
+          path: fileName,
+          data: csvContent,
+          directory: Directory.Cache,
+          encoding: Encoding.UTF8,
+        });
+
+        await Share.share({
+          title: 'Ekspor Laporan Keuangan',
+          text: `Laporan keuangan bulan ${months[selectedMonth]} ${selectedYear}`,
+          url: result.uri,
+          dialogTitle: 'Bagikan CSV',
+        });
+      } else {
+        // Web Logic: Blob download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast({
+        title: "Gagal Mengekspor",
+        description: "Terjadi kesalahan saat menyimpan file.",
+        variant: "destructive"
+      });
+    }
   };
 
   const downloadPDF = () => {
