@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,14 +7,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/components/ui/use-toast';
 import { X, Square, Hash } from 'lucide-react';
-import { Transaction } from '@/pages/Index';
+import { Transaction, Wallet, Category } from '@/types';
 
 interface TransactionFormProps {
-  onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  onAddTransaction: (transaction: Omit<Transaction, 'id' | 'walletId'>) => void;
   onClose: () => void;
+  wallets: Wallet[];
+  categories: Category[];
+  selectedWalletId?: string | null;
 }
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onClose }) => {
+const TransactionForm: React.FC<TransactionFormProps> = ({ 
+  onAddTransaction, 
+  onClose, 
+  wallets, 
+  categories,
+  selectedWalletId 
+}) => {
   const [formData, setFormData] = useState({
     type: 'expense' as 'income' | 'expense',
     amount: '',
@@ -23,28 +32,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
     date: new Date().toISOString().split('T')[0],
   });
 
-  const categories = {
-    expense: [
-      'Makanan & Minuman',
-      'Transportasi',
-      'Belanja',
-      'Tagihan',
-      'Kesehatan',
-      'Hiburan',
-      'Pendidikan',
-      'Rumah Tangga',
-      'Komunikasi',
-      'Lainnya'
-    ],
-    income: [
-      'Gaji',
-      'Bonus',
-      'Penjualan',
-      'Investasi',
-      'Freelance',
-      'Pemasukan Lain'
-    ]
-  };
+  const filteredCategories = useMemo(
+    () => categories.filter(c => c.type === formData.type),
+    [formData.type, categories]
+  );
 
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -154,9 +145,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, onC
                   <SelectValue placeholder="Pilih kategori..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories[formData.type].map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  {filteredCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.name}>
+                      <span className="flex items-center gap-2">
+                        {category.icon} {category.name}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>

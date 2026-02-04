@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Mic, Calendar, DollarSign, Euro, JapaneseYen, PoundSterling, Bitcoin, Coins } from 'lucide-react';
+import { Plus, Mic, Calendar, DollarSign, Euro, JapaneseYen, PoundSterling, Bitcoin, Coins, Settings } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav, { NavTab } from '@/components/BottomNav';
 import AboutSection from '@/components/AboutSection';
@@ -15,18 +15,19 @@ import TransactionSummary from '@/components/TransactionSummary';
 import MonthlyReports from '@/components/MonthlyReports';
 import SmartInsights from '@/components/SmartInsights';
 import SubscriptionManager from '@/components/SubscriptionManager';
-
-export interface Transaction {
-  id: string;
-  type: 'income' | 'expense';
-  amount: number;
-  category: string;
-  description: string;
-  date: string;
-}
+import AccountManager from '@/components/AccountManager';
+import BackupRestore from '@/components/BackupRestore';
+import CategoryManager from '@/components/CategoryManager';
+import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
+import { Wallet, Category, Transaction } from '@/types';
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_WALLETS } from '@/lib/constants';
+import { calculateWalletBalance } from '@/lib/backup';
 
 const Index = () => {
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showVoiceInput, setShowVoiceInput] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -41,71 +42,120 @@ const Index = () => {
 
   // Load data from localStorage on component mount
   useEffect(() => {
+    // Load wallets
+    const savedWallets = localStorage.getItem('wallets');
+    if (savedWallets) {
+      try {
+        const parsed = JSON.parse(savedWallets) as Wallet[];
+        setWallets(parsed);
+        if (parsed.length > 0 && !selectedWalletId) {
+          setSelectedWalletId(parsed[0].id);
+        }
+      } catch {
+        // Use default wallets if corrupted
+        setWallets(DEFAULT_WALLETS);
+        setSelectedWalletId(DEFAULT_WALLETS[0].id);
+      }
+    } else {
+      setWallets(DEFAULT_WALLETS);
+      setSelectedWalletId(DEFAULT_WALLETS[0].id);
+    }
+
+    // Load transactions
     const savedTransactions = localStorage.getItem('transactions');
-    if (!savedTransactions) return;
-    try {
-      const parsed = JSON.parse(savedTransactions);
-      if (!Array.isArray(parsed)) return;
+    if (savedTransactions) {
+      try {
+        const parsed = JSON.parse(savedTransactions) as Transaction[];
+        setTransactions(parsed);
+      } catch {
+        // ignore corrupted storage
+      }
+    }
 
-      const normalizeStoredTransaction = (value: unknown): Transaction | null => {
-        if (typeof value !== 'object' || value === null) return null;
-        const t = value as Record<string, unknown>;
-
-        const type =
-          t.type === 'income' ? 'income' : t.type === 'expense' ? 'expense' : null;
-          if (!type) return null;
-
-        const amount =
-          typeof t.amount === 'number'
-            ? t.amount
-            : Number.parseFloat(String(t.amount ?? ''));
-        if (!Number.isFinite(amount)) return null;
-
-        const rawCategory = typeof t.category === 'string' ? t.category : '';
-        const category = rawCategory === 'Hashihan' ? 'Tagihan' : rawCategory;
-
-        const description = typeof t.description === 'string' ? t.description : '';
-        const dateString =
-          typeof t.date === 'string' ? t.date : new Date().toISOString();
-        const date = Number.isNaN(new Date(dateString).getTime())
-          ? new Date().toISOString()
-          : dateString;
-
-        const id =
-          typeof t.id === 'string' && t.id.length > 0
-            ? t.id
-            : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-
-        return { id, type, amount, category, description, date };
-      };
-
-      const normalized: Transaction[] = parsed
-        .map(normalizeStoredTransaction)
-        .filter(Boolean) as Transaction[];
-
-      setTransactions(normalized);
-    } catch {
-      // ignore corrupted storage
+    // Load categories
+    const savedCategories = localStorage.getItem('categories');
+    if (savedCategories) {
+      try {
+        const parsed = JSON.parse(savedCategories) as Category[];
+        setCategories(parsed);
+      } catch {
+        // Use default categories
+        setCategories([...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES]);
+      }
+    } else {
+      setCategories([...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES]);
     }
   }, []);
 
+  // Update wallet balances whenever transactions change
+  useEffect(() => {
+    setWallets(prev =>
+      prev.map(wallet => ({
+        ...wallet,
+        balance: calculateWalletBalance(wallet.id, transactions),
+      }))
+    );
+  }, [transactions]);
+
   // Save data to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('wallets', JSON.stringify(wallets));
+  }, [wallets]);
+
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
+
+  useEffect(() => {
+    localStorage.setItem('categories', JSON.stringify(categories));
+  }, [categories]);
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {
       ...transaction,
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      walletId: selectedWalletId || wallets[0]?.id || '',
     };
     setTransactions(prev => [newTransaction, ...prev]);
     setShowForm(false);
     setShowVoiceInput(false);
   };
 
+  const addTransfer = (transaction: Transaction) => {
+    setTransactions(prev => [transaction, ...prev]);
+  };
+
   const deleteTransaction = (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id));
+  };
+
+  const addWallet = (wallet: Wallet) => {
+    setWallets(prev => [...prev, wallet]);
+    setSelectedWalletId(wallet.id);
+  };
+
+  const deleteWallet = (id: string) => {
+    setWallets(prev => prev.filter(w => w.id !== id));
+    if (selectedWalletId === id && wallets.length > 1) {
+      setSelectedWalletId(wallets.find(w => w.id !== id)?.id || null);
+    }
+  };
+
+  const addCategory = (category: Category) => {
+    setCategories(prev => [...prev, category]);
+  };
+
+  const deleteCategory = (id: string) => {
+    setCategories(prev => prev.filter(c => c.id !== id));
+  };
+
+  const handleRestore = (restoredWallets: Wallet[], restoredTransactions: Transaction[], restoredCategories: Category[]) => {
+    setWallets(restoredWallets);
+    setTransactions(restoredTransactions);
+    setCategories(restoredCategories);
+    if (restoredWallets.length > 0) {
+      setSelectedWalletId(restoredWallets[0].id);
+    }
   };
 
   const availableYears = Array.from(
@@ -115,6 +165,11 @@ const Index = () => {
   if (availableYears.length === 0) {
     availableYears.push(new Date().getFullYear());
   }
+
+  // Get transactions for selected wallet or all
+  const filteredTransactions = selectedWalletId
+    ? transactions.filter(t => t.walletId === selectedWalletId || t.toWalletId === selectedWalletId)
+    : transactions;
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 relative overflow-hidden font-sans selection:bg-primary selection:text-primary-foreground">
@@ -246,11 +301,11 @@ const Index = () => {
             {activeTab === 'home' && (
               <div className="space-y-6">
                 <TransactionSummary 
-                  transactions={transactions} 
+                  transactions={filteredTransactions} 
                   isAllTime={isAllTime} 
                   setIsAllTime={setIsAllTime}
                 />
-                <SmartInsights transactions={transactions} />
+                <SmartInsights transactions={filteredTransactions} />
               </div>
             )}
 
@@ -258,7 +313,7 @@ const Index = () => {
               <div className="space-y-6">
                 {/* Transaction Table - MOVED TO STATS */}
                 <TransactionTable 
-                  transactions={transactions}
+                  transactions={filteredTransactions}
                   onDeleteTransaction={deleteTransaction}
                   selectedMonth={selectedMonth}
                   selectedYear={selectedYear}
@@ -266,14 +321,14 @@ const Index = () => {
                 
                 {/* Statistics Chart */}
                 <StatisticsChart
-                  transactions={transactions}
+                  transactions={filteredTransactions}
                   selectedMonth={selectedMonth}
                   selectedYear={selectedYear}
                 />
                 
                 {/* Transaction by Category */}
                 <TransactionByCategory 
-                  transactions={transactions}
+                  transactions={filteredTransactions}
                   onDeleteTransaction={deleteTransaction}
                   selectedMonth={selectedMonth}
                   selectedYear={selectedYear}
@@ -286,7 +341,56 @@ const Index = () => {
             )}
 
             {activeTab === 'reports' && (
-              <MonthlyReports transactions={transactions} />
+              <MonthlyReports transactions={filteredTransactions} />
+            )}
+
+            {activeTab === 'settings' && (
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <h2 className="text-lg font-semibold flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Pengaturan
+                  </h2>
+                </div>
+                
+                {/* Accounts Section */}
+                <div className="rounded-lg border bg-card p-4 space-y-4">
+                  <AccountManager
+                    wallets={wallets}
+                    selectedWalletId={selectedWalletId}
+                    onAddWallet={addWallet}
+                    onDeleteWallet={deleteWallet}
+                    onSelectWallet={setSelectedWalletId}
+                  />
+                </div>
+
+                {/* Transfer Section */}
+                <div className="rounded-lg border bg-card p-4 space-y-4">
+                  <TransferBetweenAccounts
+                    wallets={wallets}
+                    onTransfer={addTransfer}
+                  />
+                </div>
+
+                {/* Categories Section */}
+                <div className="rounded-lg border bg-card p-4 space-y-4">
+                  <CategoryManager
+                    categories={categories}
+                    onAddCategory={addCategory}
+                    onDeleteCategory={deleteCategory}
+                  />
+                </div>
+
+                {/* Backup & Restore Section */}
+                <div className="rounded-lg border bg-card p-4 space-y-4">
+                  <BackupRestore
+                    wallets={wallets}
+                    transactions={transactions}
+                    categories={categories}
+                    onRestore={handleRestore}
+                  />
+                </div>
+              </div>
             )}
 
             {activeTab === 'more' && (
@@ -306,6 +410,9 @@ const Index = () => {
         <TransactionForm
           onAddTransaction={addTransaction}
           onClose={() => setShowForm(false)}
+          wallets={wallets}
+          categories={categories}
+          selectedWalletId={selectedWalletId}
         />
       )}
 
@@ -314,6 +421,7 @@ const Index = () => {
         <VoiceInput
           onAddTransaction={addTransaction}
           onClose={() => setShowVoiceInput(false)}
+          categories={categories}
         />
       )}
     </div>

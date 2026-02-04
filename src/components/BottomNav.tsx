@@ -1,8 +1,8 @@
 import React from 'react';
-import { Home, BarChart, File, Grid, Ticket } from 'lucide-react';
+import { Home, BarChart, File, Grid, Ticket, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type NavTab = 'home' | 'stats' | 'subs' | 'reports' | 'more';
+export type NavTab = 'home' | 'stats' | 'subs' | 'reports' | 'settings' | 'more';
 
 interface BottomNavProps {
   activeTab: NavTab;
@@ -15,6 +15,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onTabChange }) => {
     { id: 'stats' as NavTab, icon: BarChart, label: 'Statistik' },
     { id: 'subs' as NavTab, icon: Ticket, label: 'Langganan' },
     { id: 'reports' as NavTab, icon: File, label: 'Laporan' },
+    { id: 'settings' as NavTab, icon: Settings, label: 'Pengaturan' },
     { id: 'more' as NavTab, icon: Grid, label: 'Lainnya' },
   ];
 

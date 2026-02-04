@@ -3,15 +3,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Mic, MicOff, Hash, Edit, Square } from 'lucide-react';
-import { Transaction } from '@/pages/Index';
+import { Transaction, Category } from '@/types';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
 import { Capacitor } from '@capacitor/core';
 import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 
 interface VoiceInputProps {
-  onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  onAddTransaction: (transaction: Omit<Transaction, 'id' | 'walletId'>) => void;
   onClose: () => void;
+  categories?: Category[];
 }
 
 type ParsedTransaction = {
