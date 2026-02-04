@@ -96,19 +96,19 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
           Kelola Kategori
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Kelola Kategori</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="all" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="all" className="w-full flex flex-col flex-1 overflow-hidden">
+          <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
             <TabsTrigger value="all">Semua</TabsTrigger>
             <TabsTrigger value="expense">Pengeluaran</TabsTrigger>
             <TabsTrigger value="income">Pemasukan</TabsTrigger>
           </TabsList>
 
           {/* All Categories */}
-          <TabsContent value="all" className="space-y-4 max-h-96 overflow-y-auto">
+          <TabsContent value="all" className="space-y-2 overflow-y-auto flex-1 scrollbar-hide">
             {categories.filter((c) => c.isCustom).length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-4">
                 Tidak ada kategori custom. Tambahkan kategori baru untuk memulai.
@@ -120,10 +120,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
                   .map((category) => (
                     <div
                       key={category.id}
-                      className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                      className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{category.icon}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{category.icon}</span>
                         <div>
                           <p className="font-medium text-sm">{category.name}</p>
                           <p className="text-xs text-muted-foreground">
@@ -152,15 +152,15 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
           </TabsContent>
 
           {/* Expense Categories */}
-          <TabsContent value="expense" className="space-y-4 max-h-96 overflow-y-auto">
+          <TabsContent value="expense" className="space-y-2 overflow-y-auto flex-1 scrollbar-hide">
             <div className="space-y-2">
               {expenseCategories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{category.icon}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{category.icon}</span>
                     <div>
                       <p className="font-medium text-sm">{category.name}</p>
                       <p className="text-xs text-muted-foreground">{category.isCustom ? 'Custom' : 'Default'}</p>
@@ -188,15 +188,15 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
           </TabsContent>
 
           {/* Income Categories */}
-          <TabsContent value="income" className="space-y-4 max-h-96 overflow-y-auto">
+          <TabsContent value="income" className="space-y-2 overflow-y-auto flex-1 scrollbar-hide">
             <div className="space-y-2">
               {incomeCategories.map((category) => (
                 <div
                   key={category.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                  className="flex items-center justify-between p-2 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{category.icon}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">{category.icon}</span>
                     <div>
                       <p className="font-medium text-sm">{category.name}</p>
                       <p className="text-xs text-muted-foreground">{category.isCustom ? 'Custom' : 'Default'}</p>
@@ -224,24 +224,25 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
           </TabsContent>
         </Tabs>
 
-        {/* Add Category Form */}
-        <div className="space-y-4 border-t pt-4">
+        {/* Add Category Form - Compact */}
+        <div className="space-y-2 border-t pt-3 flex-shrink-0">
           <h3 className="font-semibold text-sm">Tambah Kategori Baru</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="category-name">Nama Kategori</Label>
+          <form onSubmit={handleSubmit} className="space-y-3 max-h-72 overflow-y-auto scrollbar-hide pr-2">
+            <div className="space-y-1">
+              <Label htmlFor="category-name" className="text-xs">Nama Kategori</Label>
               <Input
                 id="category-name"
                 placeholder="e.g., Olahraga"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="h-8 text-sm"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="category-type">Tipe</Label>
+            <div className="space-y-1">
+              <Label htmlFor="category-type" className="text-xs">Tipe</Label>
               <Select value={formData.type} onValueChange={(value: any) => setFormData({ ...formData, type: value })}>
-                <SelectTrigger id="category-type">
+                <SelectTrigger id="category-type" className="h-8 text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -251,16 +252,16 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Icon</Label>
-              <div className="grid grid-cols-5 gap-2 max-h-32 overflow-y-auto">
+            <div className="space-y-1">
+              <Label className="text-xs">Icon</Label>
+              <div className="grid grid-cols-5 gap-1">
                 {CATEGORY_ICONS.map((icon) => (
                   <button
                     key={icon}
                     type="button"
                     onClick={() => setFormData({ ...formData, icon })}
-                    className={`p-2 text-2xl rounded border-2 transition-all ${
-                      formData.icon === icon ? 'border-primary bg-primary/10' : 'border-border'
+                    className={`p-1 text-sm rounded border transition-all ${
+                      formData.icon === icon ? 'border-primary bg-primary/10 border-2' : 'border-border border'
                     }`}
                   >
                     {icon}
@@ -269,16 +270,16 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Warna</Label>
-              <div className="grid grid-cols-5 gap-2">
+            <div className="space-y-1">
+              <Label className="text-xs">Warna</Label>
+              <div className="grid grid-cols-5 gap-1">
                 {CATEGORY_COLORS.map((color) => (
                   <button
                     key={color}
                     type="button"
                     onClick={() => setFormData({ ...formData, color })}
-                    className={`h-8 rounded border-2 transition-all ${
-                      formData.color === color ? 'border-foreground ring-2 ring-offset-2' : 'border-border'
+                    className={`h-6 rounded border transition-all ${
+                      formData.color === color ? 'border-foreground border-2' : 'border-border border'
                     }`}
                     style={{ backgroundColor: color }}
                   />
@@ -286,8 +287,8 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button type="submit" className="w-full h-8 text-sm" size="sm">
+              <Plus className="h-3 w-3 mr-1" />
               Tambah Kategori
             </Button>
           </form>
