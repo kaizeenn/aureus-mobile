@@ -32,7 +32,7 @@ const WALLET_COLORS = [
   '#AA96DA', '#FCBAD3', '#A8D8EA', '#FFB6B9', '#1F9FFF'
 ];
 
-const WALLET_ICONS = ['💵', '💳', '🏦', '📲', '💰', '🪙', '💎', '🎫'];
+const WALLET_ICONS = ['💵', '💳', '🏦', '🏧', '💰', '💎', '🤑', '💸'];
 
 const AccountManager: React.FC<AccountManagerProps> = ({
   wallets,
@@ -91,68 +91,69 @@ const AccountManager: React.FC<AccountManagerProps> = ({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold flex items-center gap-2">
-          <CreditCard className="h-5 w-5" />
-          Akun Saya
-        </h2>
-      </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            Akun Saya
+          </h2>
+          <DialogTrigger asChild>
+            <Button size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Tambah Akun
+            </Button>
+          </DialogTrigger>
+        </div>
 
-      {/* Wallet List */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {wallets.map((wallet) => (
-          <div
-            key={wallet.id}
-            onClick={() => onSelectWallet(wallet.id)}
-            className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-              selectedWalletId === wallet.id
-                ? 'border-primary bg-primary/10'
-                : 'border-border hover:border-primary/50 bg-card'
-            }`}
-          >
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">{wallet.icon}</span>
-                <div>
-                  <p className="font-semibold text-sm">{wallet.name}</p>
-                  {wallet.bankName && <p className="text-xs text-muted-foreground">{wallet.bankName}</p>}
+        {/* Wallet List */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {wallets.map((wallet) => (
+            <div
+              key={wallet.id}
+              onClick={() => onSelectWallet(wallet.id)}
+              className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
+                selectedWalletId === wallet.id
+                  ? 'border-primary bg-primary/10'
+                  : 'border-border hover:border-primary/50 bg-card'
+              }`}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{wallet.icon}</span>
+                  <div>
+                    <p className="font-semibold text-sm">{wallet.name}</p>
+                    {wallet.bankName && <p className="text-xs text-muted-foreground">{wallet.bankName}</p>}
+                  </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteWallet(wallet.id);
+                    toast({
+                      title: 'Berhasil',
+                      description: `Akun ${wallet.name} telah dihapus`,
+                    });
+                  }}
+                  className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDeleteWallet(wallet.id);
-                  toast({
-                    title: 'Berhasil',
-                    description: `Akun ${wallet.name} telah dihapus`,
-                  });
-                }}
-                className="h-6 w-6 p-0 text-destructive hover:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              <p className="text-lg font-bold">Rp {wallet.balance.toLocaleString('id-ID')}</p>
             </div>
-            <p className="text-lg font-bold">Rp {wallet.balance.toLocaleString('id-ID')}</p>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Add Account Dialog */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="w-full gap-2">
-            <Plus className="h-4 w-4" />
-            Tambah Akun
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Tambah Akun Baru</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Tambah Akun Baru</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="wallet-name">Nama Akun</Label>
               <Input
@@ -230,13 +231,12 @@ const AccountManager: React.FC<AccountManagerProps> = ({
               </div>
             </div>
 
-            <Button type="submit" className="w-full">
-              Tambah Akun
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </div>
+          <Button type="submit" className="w-full">
+            Tambah Akun
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 };
 

@@ -109,12 +109,18 @@ const TransferBetweenAccounts: React.FC<TransferBetweenAccountsProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full gap-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold flex items-center gap-2">
           <Send className="h-4 w-4" />
           Transfer Antar Akun
-        </Button>
-      </DialogTrigger>
+        </h3>
+        <DialogTrigger asChild>
+          <Button size="sm" variant="outline" className="gap-2">
+            <Send className="h-4 w-4" />
+            Mulai Transfer
+          </Button>
+        </DialogTrigger>
+      </div>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">

@@ -209,7 +209,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 fontSize: `${20 + Math.random() * 30}px`,
               }}
             >
-               💰
+              $
             </div>
           ))}
         </div>

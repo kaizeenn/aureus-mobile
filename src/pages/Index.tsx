@@ -2,10 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Mic, Calendar, DollarSign, Euro, JapaneseYen, PoundSterling, Bitcoin, Coins, Settings } from 'lucide-react';
+import { Plus, Mic, Calendar, DollarSign, Euro, JapaneseYen, PoundSterling, Bitcoin, Coins, CreditCard, Tags, HardDriveDownload, ChevronRight } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav, { NavTab } from '@/components/BottomNav';
-import AboutSection from '@/components/AboutSection';
 import TransactionForm from '@/components/TransactionForm';
 import VoiceInput from '@/components/VoiceInput';
 import TransactionTable from '@/components/TransactionTable';
@@ -16,9 +15,9 @@ import MonthlyReports from '@/components/MonthlyReports';
 import SmartInsights from '@/components/SmartInsights';
 import SubscriptionManager from '@/components/SubscriptionManager';
 import AccountManager from '@/components/AccountManager';
-import BackupRestore from '@/components/BackupRestore';
-import CategoryManager from '@/components/CategoryManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
+import CategoriesPage from '@/pages/Categories';
+import BackupRestorePage from '@/pages/BackupRestore';
 import { Wallet, Category, Transaction } from '@/types';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_WALLETS } from '@/lib/constants';
 import { calculateWalletBalance } from '@/lib/backup';
@@ -34,6 +33,7 @@ const Index = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isAllTime, setIsAllTime] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('home');
+  const [currentPage, setCurrentPage] = useState<'main' | 'categories' | 'backup'>('main');
 
   const months = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -42,6 +42,15 @@ const Index = () => {
 
   // Load data from localStorage on component mount
   useEffect(() => {
+    const APP_VERSION = '2.0.0';
+    const savedVersion = localStorage.getItem('appVersion');
+    
+    // Clear old data if version changed (emoji to text codes migration)
+    if (savedVersion !== APP_VERSION) {
+      localStorage.clear();
+      localStorage.setItem('appVersion', APP_VERSION);
+    }
+
     // Load wallets
     const savedWallets = localStorage.getItem('wallets');
     if (savedWallets) {
@@ -170,6 +179,45 @@ const Index = () => {
   const filteredTransactions = selectedWalletId
     ? transactions.filter(t => t.walletId === selectedWalletId || t.toWalletId === selectedWalletId)
     : transactions;
+
+  const totalBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
+
+  // Handle page navigation for separate pages
+  if (currentPage === 'categories') {
+    return (
+      <CategoriesPage
+        categories={categories}
+        onAddCategory={addCategory}
+        onDeleteCategory={deleteCategory}
+        onBack={() => {
+          setCurrentPage('main');
+          setActiveTab('more');
+        }}
+      />
+    );
+  }
+
+  if (currentPage === 'backup') {
+    return (
+      <BackupRestorePage
+        wallets={wallets}
+        transactions={transactions}
+        categories={categories}
+        onRestore={(data) => {
+          setWallets(data.wallets);
+          setTransactions(data.transactions);
+          setCategories(data.categories);
+          if (data.wallets.length > 0) {
+            setSelectedWalletId(data.wallets[0].id);
+          }
+        }}
+        onBack={() => {
+          setCurrentPage('main');
+          setActiveTab('more');
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 relative overflow-hidden font-sans selection:bg-primary selection:text-primary-foreground">
@@ -311,6 +359,14 @@ const Index = () => {
 
             {activeTab === 'stats' && (
               <div className="space-y-6">
+                <div className="rounded-xl border bg-card p-4 shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Total Saldo Semua Akun</p>
+                      <p className="text-2xl font-semibold">Rp {totalBalance.toLocaleString('id-ID')}</p>
+                    </div>
+                  </div>
+                </div>
                 {/* Transaction Table - MOVED TO STATS */}
                 <TransactionTable 
                   transactions={filteredTransactions}
@@ -348,8 +404,8 @@ const Index = () => {
               <div className="space-y-6">
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    Pengaturan
+                    <CreditCard className="h-5 w-5" />
+                    Akun
                   </h2>
                 </div>
                 
@@ -371,31 +427,35 @@ const Index = () => {
                     onTransfer={addTransfer}
                   />
                 </div>
-
-                {/* Categories Section */}
-                <div className="rounded-lg border bg-card p-4 space-y-4">
-                  <CategoryManager
-                    categories={categories}
-                    onAddCategory={addCategory}
-                    onDeleteCategory={deleteCategory}
-                  />
-                </div>
-
-                {/* Backup & Restore Section */}
-                <div className="rounded-lg border bg-card p-4 space-y-4">
-                  <BackupRestore
-                    wallets={wallets}
-                    transactions={transactions}
-                    categories={categories}
-                    onRestore={handleRestore}
-                  />
-                </div>
               </div>
             )}
 
             {activeTab === 'more' && (
               <div className="space-y-6">
-                <AboutSection />
+                <div className="space-y-3">
+                  <Button
+                    onClick={() => setCurrentPage('categories')}
+                    className="h-14 w-full justify-between px-4"
+                    variant="outline"
+                  >
+                    <span className="flex items-center gap-3 text-base">
+                      <Tags className="h-5 w-5" />
+                      Kelola Kategori
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                  <Button
+                    onClick={() => setCurrentPage('backup')}
+                    className="h-14 w-full justify-between px-4"
+                    variant="outline"
+                  >
+                    <span className="flex items-center gap-3 text-base">
+                      <HardDriveDownload className="h-5 w-5" />
+                      Backup & Restore
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </div>
               </div>
             )}
           </section>
