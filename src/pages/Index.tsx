@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Mic, Calendar, DollarSign, Euro, JapaneseYen, PoundSterling, Bitcoin, Coins, CreditCard, Tags, HardDriveDownload, ChevronRight } from 'lucide-react';
+import { Plus, Mic, Calendar, DollarSign, Euro, JapaneseYen, PoundSterling, Bitcoin, Coins, CreditCard, Tags, HardDriveDownload, ChevronRight, BarChart3, FileText, Wallet as WalletIcon, Lock } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav, { NavTab } from '@/components/BottomNav';
 import TransactionForm from '@/components/TransactionForm';
@@ -18,10 +18,14 @@ import AccountManager from '@/components/AccountManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import CategoriesPage from '@/pages/Categories';
 import BackupRestoreComponent from '@/components/BackupRestore';
+import { Switch } from '@/components/ui/switch';
+import { toast } from '@/components/ui/use-toast';
 import { Wallet, Category, Transaction } from '@/types';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_WALLETS } from '@/lib/constants';
 import { calculateWalletBalance } from '@/lib/backup';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Capacitor } from '@capacitor/core';
+import { NativeBiometric } from 'capacitor-native-biometric';
 
 const Index = () => {
   const [wallets, setWallets] = useState<Wallet[]>(DEFAULT_WALLETS);
@@ -32,10 +36,14 @@ const Index = () => {
   const [showVoiceInput, setShowVoiceInput] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [reportMonth, setReportMonth] = useState(new Date().getMonth());
+  const [reportYear, setReportYear] = useState(new Date().getFullYear());
   const [isAllTime, setIsAllTime] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [currentPage, setCurrentPage] = useState<'main' | 'categories'>('main');
   const [showBackupRestore, setShowBackupRestore] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [isBiometricLocked, setIsBiometricLocked] = useState(false);
 
   const months = [
     'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
@@ -103,6 +111,12 @@ const Index = () => {
     }
   }, []);
 
+  // Debug: Log transactions when they change
+  useEffect(() => {
+    console.log('Current transactions:', transactions);
+    console.log('Wallets:', wallets);
+  }, [transactions, wallets]);
+
   // Update wallet balances whenever transactions change
   useEffect(() => {
     setWallets(prev =>
@@ -126,11 +140,33 @@ const Index = () => {
     localStorage.setItem('categories', JSON.stringify(categories));
   }, [categories]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('biometricEnabled');
+    if (saved === 'true') {
+      setBiometricEnabled(true);
+      setIsBiometricLocked(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('biometricEnabled', biometricEnabled ? 'true' : 'false');
+  }, [biometricEnabled]);
+
+  useEffect(() => {
+    if (!biometricEnabled) return;
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        setIsBiometricLocked(true);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [biometricEnabled]);
+
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {
       ...transaction,
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      walletId: selectedWalletId || wallets[0]?.id || '',
     };
     setTransactions(prev => [newTransaction, ...prev]);
     setShowForm(false);
@@ -187,7 +223,67 @@ const Index = () => {
     ? transactions.filter(t => t.walletId === selectedWalletId || t.toWalletId === selectedWalletId)
     : transactions;
 
+  // For statistics, always show all transactions regardless of selected wallet
+  const statsTransactions = transactions;
+
   const totalBalance = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
+
+  const attemptBiometricUnlock = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      toast({
+        variant: 'destructive',
+        title: 'Biometrik tidak tersedia',
+        description: 'Fitur ini hanya tersedia di perangkat mobile.',
+      });
+      return false;
+    }
+
+    try {
+      const availability = await NativeBiometric.isAvailable({ useFallback: true });
+      if (!availability.isAvailable) {
+        toast({
+          variant: 'destructive',
+          title: 'Biometrik tidak tersedia',
+          description: 'Aktifkan biometrik di perangkat Anda terlebih dahulu.',
+        });
+        return false;
+      }
+
+      await NativeBiometric.verifyIdentity({
+        reason: 'Buka Aureus',
+        title: 'Aureus',
+        subtitle: 'Verifikasi biometrik',
+        description: 'Gunakan sidik jari atau Face ID',
+        useFallback: true,
+      });
+
+      setIsBiometricLocked(false);
+      return true;
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Autentikasi gagal',
+        description: 'Coba lagi untuk membuka aplikasi.',
+      });
+      return false;
+    }
+  };
+
+  const handleBiometricToggle = async (checked: boolean) => {
+    if (!checked) {
+      setBiometricEnabled(false);
+      setIsBiometricLocked(false);
+      return;
+    }
+
+    setBiometricEnabled(true);
+    setIsBiometricLocked(true);
+    const unlocked = await attemptBiometricUnlock();
+    if (!unlocked) {
+      setBiometricEnabled(false);
+      setIsBiometricLocked(false);
+    }
+  };
 
   // Handle page navigation for separate pages
   if (currentPage === 'categories') {
@@ -293,41 +389,44 @@ const Index = () => {
 
           {/* Stats Tab Period Selector */}
           {activeTab === 'stats' && (
-            <div className="rounded-xl border bg-card p-4 shadow-sm">
+            <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-semibold text-foreground">Periode Statistik</span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-semibold text-foreground">
+                      Periode Analitik: <span className="text-primary">{months[selectedMonth]} {selectedYear}</span>
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Berlaku untuk Buku Besar, Analitik, dan Breakdown.</p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className={`flex gap-2 transition-all duration-300 ${isAllTime ? 'opacity-50 pointer-events-none grayscale' : ''}`}>
-                    <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-                      <SelectTrigger className="w-[130px] h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {months.map((month, index) => (
-                          <SelectItem key={index} value={index.toString()}>
-                            {month}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
+                    <SelectTrigger className="w-[130px] h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month, index) => (
+                        <SelectItem key={index} value={index.toString()}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                    <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                      <SelectTrigger className="w-[90px] h-9 text-sm">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {availableYears.map((year) => (
-                          <SelectItem key={year} value={year.toString()}>
-                            {year}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
+                    <SelectTrigger className="w-[90px] h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableYears.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -338,55 +437,131 @@ const Index = () => {
             {activeTab === 'home' && (
               <div className="space-y-6">
                 <TransactionSummary 
-                  transactions={filteredTransactions} 
+                  transactions={transactions} 
                   isAllTime={isAllTime} 
                   setIsAllTime={setIsAllTime}
                 />
+                
+                {/* Kata Bijak */}
                 <SmartInsights transactions={filteredTransactions} />
               </div>
             )}
 
             {activeTab === 'stats' && (
-              <div className="space-y-6">
-                <div className="rounded-xl border bg-card p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Total Saldo Semua Akun</p>
-                      <p className="text-2xl font-semibold">Rp {totalBalance.toLocaleString('id-ID')}</p>
+              <div className="space-y-8">
+                {/* BUKU BESAR - AT THE TOP */}
+                <section className="space-y-6">
+                  <div className="relative">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
+                    <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
+                      <WalletIcon className="h-5 w-5 text-primary" />
+                      Buku Besar
+                    </h2>
+                  </div>
+
+                  {/* Buku Besar - Transaction Table (Monthly Transactions) */}
+                  <TransactionTable 
+                    transactions={statsTransactions}
+                    wallets={wallets}
+                    onDeleteTransaction={deleteTransaction}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                    isAllTime={false}
+                  />
+                </section>
+
+                {/* DIVIDER */}
+                <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+
+                {/* ANALYTICS SECTION */}
+                <section className="space-y-6">
+                  <div className="relative">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
+                    <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      Analitik & Breakdown
+                    </h2>
+                  </div>
+
+                  {/* Statistics Chart */}
+                  <StatisticsChart
+                    transactions={statsTransactions}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                  />
+                  
+                  {/* Transaction by Category */}
+                  <TransactionByCategory 
+                    transactions={statsTransactions}
+                    wallets={wallets}
+                    onDeleteTransaction={deleteTransaction}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                  />
+                </section>
+
+                {/* DIVIDER */}
+                <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+
+                {/* REPORTS SECTION */}
+                <section className="space-y-6">
+                  <div className="relative">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
+                    <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                      Laporan Bulanan
+                    </h2>
+                  </div>
+
+                  {/* Period Selector for Laporan */}
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-muted/30 p-4 rounded-xl border border-primary/10">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-semibold text-foreground">Periode Laporan: <span className="text-primary">{months[reportMonth]} {reportYear}</span></span>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Select value={reportMonth.toString()} onValueChange={(value) => setReportMonth(parseInt(value))}>
+                        <SelectTrigger className="w-[130px] h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {months.map((month, index) => (
+                            <SelectItem key={index} value={index.toString()}>
+                              {month}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={reportYear.toString()} onValueChange={(value) => setReportYear(parseInt(value))}>
+                        <SelectTrigger className="w-[90px] h-9 text-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableYears.map((year) => (
+                            <SelectItem key={year} value={year.toString()}>
+                              {year}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
-                </div>
-                {/* Transaction Table - MOVED TO STATS */}
-                <TransactionTable 
-                  transactions={filteredTransactions}
-                  onDeleteTransaction={deleteTransaction}
-                  selectedMonth={selectedMonth}
-                  selectedYear={selectedYear}
-                />
-                
-                {/* Statistics Chart */}
-                <StatisticsChart
-                  transactions={filteredTransactions}
-                  selectedMonth={selectedMonth}
-                  selectedYear={selectedYear}
-                />
-                
-                {/* Transaction by Category */}
-                <TransactionByCategory 
-                  transactions={filteredTransactions}
-                  onDeleteTransaction={deleteTransaction}
-                  selectedMonth={selectedMonth}
-                  selectedYear={selectedYear}
-                />
+
+                  {/* Monthly Report */}
+                  <MonthlyReports 
+                    transactions={statsTransactions}
+                    selectedMonth={reportMonth}
+                    selectedYear={reportYear}
+                    months={months}
+                  />
+                </section>
               </div>
             )}
 
             {activeTab === 'subs' && (
               <SubscriptionManager onAddTransaction={addTransaction} />
-            )}
-
-            {activeTab === 'reports' && (
-              <MonthlyReports transactions={filteredTransactions} />
             )}
 
             {activeTab === 'settings' && (
@@ -406,6 +581,7 @@ const Index = () => {
                     onAddWallet={addWallet}
                     onDeleteWallet={deleteWallet}
                     onSelectWallet={setSelectedWalletId}
+                    transactions={transactions}
                   />
                 </div>
 
@@ -415,6 +591,20 @@ const Index = () => {
                     wallets={wallets}
                     onTransfer={addTransfer}
                   />
+                </div>
+
+                {/* Security Section */}
+                <div className="rounded-lg border bg-card p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold">Keamanan</h3>
+                      <p className="text-xs text-muted-foreground">Kunci aplikasi dengan biometrik.</p>
+                    </div>
+                    <Switch checked={biometricEnabled} onCheckedChange={handleBiometricToggle} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Saat aktif, aplikasi akan terkunci dan memerlukan verifikasi biometrik setiap dibuka.
+                  </p>
                 </div>
               </div>
             )}
@@ -453,6 +643,29 @@ const Index = () => {
 
       {/* Bottom Navigation */}
       <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {biometricEnabled && isBiometricLocked && (
+        <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-sm flex items-center justify-center p-6">
+          <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-lg text-center space-y-4">
+            <div className="mx-auto h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <Lock className="h-6 w-6 text-primary" />
+            </div>
+            <h2 className="text-lg font-semibold">Aplikasi Terkunci</h2>
+            <p className="text-sm text-muted-foreground">Gunakan biometrik untuk membuka.</p>
+            <Button onClick={attemptBiometricUnlock} className="w-full">Buka dengan Biometrik</Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setBiometricEnabled(false);
+                setIsBiometricLocked(false);
+              }}
+              className="w-full"
+            >
+              Nonaktifkan Biometrik
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Transaction Form Modal */}
       {showForm && (

@@ -10,13 +10,16 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { X, ArrowUp, ArrowDown, Wallet } from 'lucide-react';
 import { Transaction } from '@/pages/Index';
+import { Wallet as WalletType } from '@/types';
 import { cn } from '@/lib/utils';
 
 interface TransactionTableProps {
   transactions: Transaction[];
+  wallets: WalletType[];
   onDeleteTransaction: (id: string) => void;
   selectedMonth: number;
   selectedYear: number;
@@ -24,7 +27,8 @@ interface TransactionTableProps {
 }
 
 const TransactionTable: React.FC<TransactionTableProps> = ({ 
-  transactions, 
+  transactions,
+  wallets,
   onDeleteTransaction,
   selectedMonth,
   selectedYear,
@@ -32,6 +36,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
 }) => {
   const [showIncome, setShowIncome] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [detailTransaction, setDetailTransaction] = useState<Transaction | null>(null);
 
   // Filter transactions by selected month and year
   const monthlyTransactions = transactions.filter(transaction => {
@@ -55,6 +60,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
   const totalAmount = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
 
   return (
+    <>
     <Card className="border-2 border-primary/20 shadow-sm relative z-0">
       <CardHeader className="bg-muted/30 pb-4 border-b border-primary/10 rounded-t-xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -139,25 +145,11 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
              {filteredTransactions.map((transaction) => (
                  <div 
                     key={transaction.id}
-                    onClick={() => setSelectedId(selectedId === transaction.id ? null : transaction.id)}
+                    onClick={() => setDetailTransaction(transaction)}
                     className="group flex items-center justify-between p-4 hover:bg-primary/5 transition-colors duration-200 relative cursor-pointer"
                  >
                     {/* Hover Decoration */}
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary scale-y-0 group-hover:scale-y-100 transition-transform duration-200 origin-center"></div>
-
-                    {/* Cloud Tooltip Popup */}
-                    {selectedId === transaction.id && (
-                      <div className="absolute left-1/2 -top-4 transform -translate-x-1/2 -translate-y-full z-50 w-64 animate-in zoom-in-95 fade-in duration-200">
-                        <div className="relative bg-popover text-popover-foreground p-4 rounded-3xl border-2 border-primary shadow-xl">
-                          <p className="text-sm font-medium text-center leading-relaxed">
-                            {transaction.description}
-                          </p>
-                          {/* Triangle Tail */}
-                          <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-primary"></div>
-                          <div className="absolute -bottom-[9px] left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-popover"></div>
-                        </div>
-                      </div>
-                    )}
 
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                          {/* Date Box */}
@@ -207,6 +199,58 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
         )}
       </CardContent>
     </Card>
+
+    {/* Transaction Detail Dialog */}
+    <Dialog open={!!detailTransaction} onOpenChange={(open) => !open && setDetailTransaction(null)}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Detail Transaksi</DialogTitle>
+        </DialogHeader>
+        {detailTransaction && (
+          <div className="space-y-4 text-sm">
+            <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+              <span className="text-muted-foreground">Jumlah</span>
+              <span className={`font-bold text-lg tabular-nums ${detailTransaction.type === 'income' ? 'text-success' : 'text-destructive'}`}>
+                {detailTransaction.type === 'income' ? '+' : '-'} Rp {detailTransaction.amount.toLocaleString('id-ID')}
+              </span>
+            </div>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Tipe</span>
+                <Badge variant={detailTransaction.type === 'income' ? 'default' : 'destructive'}>
+                  {detailTransaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Kategori</span>
+                <span className="font-semibold">{detailTransaction.category}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Tanggal</span>
+                <span className="font-semibold">{new Date(detailTransaction.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Jam</span>
+                <span className="font-mono font-semibold">{new Date(detailTransaction.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Akun</span>
+                <span className="font-semibold">
+                  {wallets.find(w => w.id === detailTransaction.walletId)?.icon} {wallets.find(w => w.id === detailTransaction.walletId)?.name || 'Akun Tidak Ditemukan'}
+                </span>
+              </div>
+            </div>
+            <div className="border-t pt-3">
+              <span className="text-muted-foreground text-xs font-semibold">Keterangan</span>
+              <p className="mt-2 font-medium leading-relaxed">
+                {detailTransaction.description || 'Tanpa Keterangan'}
+              </p>
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+    </>
   );
 };
 

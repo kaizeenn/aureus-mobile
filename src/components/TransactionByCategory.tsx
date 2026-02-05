@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { X, ArrowUp, ArrowDown, PieChart as PieChartIcon, Layers } from 'lucide-react';
+import { PieChart as PieChartIcon, Layers, ArrowUp, ArrowDown, X } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, Legend } from 'recharts';
-import { Transaction } from '@/pages/Index';
+import { Transaction, Wallet } from '@/types';
 
 interface TransactionByCategoryProps {
   transactions: Transaction[];
+   wallets: Wallet[];
   onDeleteTransaction: (id: string) => void;
   selectedMonth: number;
   selectedYear: number;
@@ -17,14 +19,16 @@ interface TransactionByCategoryProps {
 }
 
 const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({ 
-  transactions, 
-  onDeleteTransaction,
-  selectedMonth,
-  selectedYear,
-  isAllTime = false
+   transactions,
+   wallets,
+   onDeleteTransaction,
+   selectedMonth,
+   selectedYear,
+   isAllTime = false
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [detailTransaction, setDetailTransaction] = useState<Transaction | null>(null);
 
   // Filter transactions
   const monthlyTransactions = transactions.filter(transaction => {
@@ -33,24 +37,7 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
     return date.getMonth() === selectedMonth && date.getFullYear() === selectedYear;
   });
 
-  const categories = Array.from(new Set(monthlyTransactions.map(t => t.category))).sort();
-
-  const filteredTransactions = monthlyTransactions.filter(transaction => {
-    const matchesCategory = selectedCategory === 'all' || transaction.category === selectedCategory;
-    const matchesType = selectedType === 'all' || transaction.type === selectedType;
-    return matchesCategory && matchesType;
-  });
-
-  // Group by category
-  const transactionsByCategory = filteredTransactions.reduce((acc, transaction) => {
-    if (!acc[transaction.category]) {
-      acc[transaction.category] = [];
-    }
-    acc[transaction.category].push(transaction);
-    return acc;
-  }, {} as Record<string, Transaction[]>);
-
-  const getCategoryTotal = (txs: Transaction[]) => txs.reduce((sum, t) => sum + t.amount, 0);
+   const categories = Array.from(new Set(monthlyTransactions.map(t => t.category))).sort();
 
    const expenseByCategory = monthlyTransactions
       .filter((t) => t.type === 'expense')
@@ -63,6 +50,21 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
       category,
       value,
    }));
+
+   // Group transactions by category with type and category filter
+   const filteredTransactions = monthlyTransactions.filter(transaction => {
+      const matchesCategory = selectedCategory === 'all' || transaction.category === selectedCategory;
+      const matchesType = selectedType === 'all' || transaction.type === selectedType;
+      return matchesCategory && matchesType;
+   });
+
+   const transactionsByCategory = filteredTransactions.reduce((acc, transaction) => {
+      if (!acc[transaction.category]) {
+         acc[transaction.category] = [];
+      }
+      acc[transaction.category].push(transaction);
+      return acc;
+   }, {} as Record<string, Transaction[]>);
 
    const PIE_COLORS = [
       '#F59E0B', '#F97316', '#FACC15', '#FBBF24', '#FDBA74',
@@ -77,23 +79,24 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
       return acc;
    }, {} as ChartConfig);
 
-  return (
-    <div className="space-y-6">
+   return (
+      <>
+      <div className="space-y-6">
+       <div className="flex items-center gap-2 bg-card/50 p-4 rounded-xl border border-primary/10">
+          <div className="p-2 bg-primary/20 rounded-lg">
+             <Layers className="h-5 w-5 text-primary-foreground" />
+          </div>
+          <div>
+             <h3 className="font-display font-bold text-lg leading-none">Breakdown</h3>
+             <p className="text-xs text-muted-foreground">Per Kategori</p>
+          </div>
+       </div>
+
        {/* Filter Header */}
        <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-card/50 p-4 rounded-xl border border-primary/10">
-          <div className="flex items-center gap-2">
-             <div className="p-2 bg-primary/20 rounded-lg">
-                <Layers className="h-5 w-5 text-primary-foreground" />
-             </div>
-             <div>
-                <h3 className="font-display font-bold text-lg leading-none">Breakdown</h3>
-                <p className="text-xs text-muted-foreground">Per Kategori</p>
-             </div>
-          </div>
-
           <div className="flex gap-2 w-full sm:w-auto">
              <Select value={selectedType} onValueChange={(v: any) => setSelectedType(v)}>
-                <SelectTrigger className="w-full sm:w-[140px] bg-background border-primary/20">
+                <SelectTrigger className="w-full sm:w-[160px] bg-background border-primary/20">
                    <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -165,12 +168,15 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
                </Card>
           )}
 
-          {Object.keys(transactionsByCategory).length === 0 ? (
+          {expensePieData.length === 0 ? (
           <div className="text-center py-20 border-2 border-dashed border-primary/20 rounded-2xl bg-muted/20">
                    <PieChartIcon className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4 animate-spin-slow" />
              <p className="text-muted-foreground font-medium">Tidak ada data untuk ditampilkan</p>
           </div>
-       ) : (
+       ) : null}
+
+       {/* Category Cards with Transaction History */}
+       {Object.keys(transactionsByCategory).length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              {Object.entries(transactionsByCategory).map(([category, categoryTransactions]) => {
                 const totalIncome = categoryTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
@@ -196,8 +202,12 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
 
                       {/* Receipt-style List */}
                       <div className="p-0">
-                         {categoryTransactions.slice(0, 5).map((t, idx) => (
-                            <div key={t.id} className="flex justify-between items-center p-3 border-b border-dashed border-primary/10 last:border-0 hover:bg-primary/5 transition-colors text-sm">
+                         {categoryTransactions.slice(0, 5).map((t) => (
+                            <div
+                               key={t.id}
+                               onClick={() => setDetailTransaction(t)}
+                               className="flex justify-between items-center p-3 border-b border-dashed border-primary/10 last:border-0 hover:bg-primary/5 transition-colors text-sm cursor-pointer"
+                            >
                                <div className="flex flex-col min-w-0 pr-2">
                                   <span className="truncate font-medium text-foreground/90">{t.description || "Tanpa Keterangan"}</span>
                                   <span className="text-[10px] text-muted-foreground">{new Date(t.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
@@ -210,7 +220,8 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
                                      variant="ghost" 
                                      size="icon" 
                                      className="h-6 w-6 text-muted-foreground/50 hover:text-destructive -mr-2"
-                                     onClick={() => {
+                                     onClick={(e) => {
+                                        e.stopPropagation();
                                         if(confirm("Hapus?")) onDeleteTransaction(t.id)
                                      }}
                                   >
@@ -233,8 +244,59 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
              })}
           </div>
        )}
-    </div>
-  );
+      </div>
+         <Dialog open={!!detailTransaction} onOpenChange={(open) => !open && setDetailTransaction(null)}>
+            <DialogContent className="max-w-sm">
+               <DialogHeader>
+                  <DialogTitle>Detail Transaksi</DialogTitle>
+               </DialogHeader>
+               {detailTransaction && (
+                  <div className="space-y-4 text-sm">
+                     <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                        <span className="text-muted-foreground">Jumlah</span>
+                        <span className={`font-bold text-lg tabular-nums ${detailTransaction.type === 'income' ? 'text-success' : 'text-destructive'}`}>
+                           {detailTransaction.type === 'income' ? '+' : '-'} Rp {detailTransaction.amount.toLocaleString('id-ID')}
+                        </span>
+                     </div>
+                     <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                           <span className="text-muted-foreground">Tipe</span>
+                           <Badge variant={detailTransaction.type === 'income' ? 'default' : 'destructive'}>
+                              {detailTransaction.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}
+                           </Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                           <span className="text-muted-foreground">Kategori</span>
+                           <span className="font-semibold">{detailTransaction.category}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                           <span className="text-muted-foreground">Tanggal</span>
+                           <span className="font-semibold">{new Date(detailTransaction.date).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                           <span className="text-muted-foreground">Jam</span>
+                           <span className="font-mono font-semibold">{new Date(detailTransaction.date).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                           <span className="text-muted-foreground">Akun</span>
+                           <span className="font-semibold">
+                              {wallets.find(w => w.id === detailTransaction.walletId)?.icon}{' '}
+                              {wallets.find(w => w.id === detailTransaction.walletId)?.name || 'Akun Tidak Ditemukan'}
+                           </span>
+                        </div>
+                     </div>
+                     <div className="border-t pt-3">
+                        <span className="text-muted-foreground text-xs font-semibold">Keterangan</span>
+                        <p className="mt-2 font-medium leading-relaxed">
+                           {detailTransaction.description || 'Tanpa Keterangan'}
+                        </p>
+                     </div>
+                  </div>
+               )}
+            </DialogContent>
+         </Dialog>
+      </>
+   );
 };
 
 export default TransactionByCategory;
