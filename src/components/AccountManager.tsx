@@ -16,17 +16,6 @@ interface AccountManagerProps {
   onSelectWallet: (id: string) => void;
 }
 
-const BANK_OPTIONS = [
-  { label: 'Dana', value: 'dana' },
-  { label: 'BCA', value: 'bca' },
-  { label: 'Mandiri', value: 'mandiri' },
-  { label: 'BNI', value: 'bni' },
-  { label: 'BRI', value: 'bri' },
-  { label: 'OVO', value: 'ovo' },
-  { label: 'GCash', value: 'gcash' },
-  { label: 'Tunai', value: 'cash' },
-];
-
 const WALLET_COLORS = [
   '#FF6B6B', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181',
   '#AA96DA', '#FCBAD3', '#A8D8EA', '#FFB6B9', '#1F9FFF'
@@ -45,7 +34,6 @@ const AccountManager: React.FC<AccountManagerProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     type: 'bank' as 'cash' | 'bank' | 'digital',
-    bankName: '',
     color: WALLET_COLORS[0],
     icon: WALLET_ICONS[0],
   });
@@ -66,7 +54,6 @@ const AccountManager: React.FC<AccountManagerProps> = ({
       id: `wallet-${Date.now()}`,
       name: formData.name,
       type: formData.type,
-      bankName: formData.bankName || undefined,
       balance: 0,
       currency: 'IDR',
       color: formData.color,
@@ -78,7 +65,6 @@ const AccountManager: React.FC<AccountManagerProps> = ({
     setFormData({
       name: '',
       type: 'bank',
-      bankName: '',
       color: WALLET_COLORS[0],
       icon: WALLET_ICONS[0],
     });
@@ -123,7 +109,6 @@ const AccountManager: React.FC<AccountManagerProps> = ({
                   <span className="text-2xl">{wallet.icon}</span>
                   <div>
                     <p className="font-semibold text-sm">{wallet.name}</p>
-                    {wallet.bankName && <p className="text-xs text-muted-foreground">{wallet.bankName}</p>}
                   </div>
                 </div>
                 <Button
@@ -177,24 +162,6 @@ const AccountManager: React.FC<AccountManagerProps> = ({
                 </SelectContent>
               </Select>
             </div>
-
-            {(formData.type === 'bank' || formData.type === 'digital') && (
-              <div className="space-y-2">
-                <Label htmlFor="bank-name">Nama Bank/Aplikasi</Label>
-                <Select value={formData.bankName} onValueChange={(value) => setFormData({ ...formData, bankName: value })}>
-                  <SelectTrigger id="bank-name">
-                    <SelectValue placeholder="Pilih bank/aplikasi" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BANK_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="space-y-2">
               <Label>Icon</Label>

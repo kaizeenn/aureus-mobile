@@ -24,9 +24,9 @@ import { calculateWalletBalance } from '@/lib/backup';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const Index = () => {
-  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [wallets, setWallets] = useState<Wallet[]>(DEFAULT_WALLETS);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>([...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES]);
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [showVoiceInput, setShowVoiceInput] = useState(false);
@@ -88,7 +88,12 @@ const Index = () => {
     if (savedCategories) {
       try {
         const parsed = JSON.parse(savedCategories) as Category[];
-        setCategories(parsed);
+        // Ensure we have both default and custom categories
+        if (parsed.length === 0) {
+          setCategories([...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES]);
+        } else {
+          setCategories(parsed);
+        }
       } catch {
         // Use default categories
         setCategories([...DEFAULT_EXPENSE_CATEGORIES, ...DEFAULT_INCOME_CATEGORIES]);

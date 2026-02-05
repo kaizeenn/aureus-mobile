@@ -4,7 +4,6 @@ export interface Wallet {
   id: string;
   name: string;
   type: 'cash' | 'bank' | 'digital';
-  bankName?: string; // e.g., "BCA", "Mandiri", "Dana", "OVO"
   balance: number;
   currency: string;
   color: string;

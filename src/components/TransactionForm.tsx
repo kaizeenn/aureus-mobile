@@ -43,6 +43,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     [formData.type, categories]
   );
 
+  useEffect(() => {
+    if (categories.length === 0) {
+      console.warn('TransactionForm: No categories provided');
+    }
+  }, [categories]);
+
   const [isAnimating, setIsAnimating] = useState(false);
 
   useEffect(() => {
@@ -194,6 +200,9 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                   ))}
                 </SelectContent>
               </Select>
+              {filteredCategories.length === 0 && (
+                <p className="text-xs text-red-500 mt-1">Tidak ada kategori untuk tipe transaksi ini</p>
+              )}
             </div>
 
             <div>
