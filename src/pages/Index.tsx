@@ -387,6 +387,63 @@ const Index = () => {
             </div>
           )}
 
+          {/* Laporan Bulanan - Stats Tab */}
+          {activeTab === 'stats' && (
+            <div className="space-y-6">
+              <div className="relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
+                <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  Laporan Bulanan
+                </h2>
+              </div>
+
+              {/* Period Selector for Laporan */}
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-muted/30 p-4 rounded-xl border border-primary/10">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-semibold text-foreground">Periode Laporan: <span className="text-primary">{months[reportMonth]} {reportYear}</span></span>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <Select value={reportMonth.toString()} onValueChange={(value) => setReportMonth(parseInt(value))}>
+                    <SelectTrigger className="w-[130px] h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month, index) => (
+                        <SelectItem key={index} value={index.toString()}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={reportYear.toString()} onValueChange={(value) => setReportYear(parseInt(value))}>
+                    <SelectTrigger className="w-[90px] h-9 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableYears.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Monthly Report */}
+              <MonthlyReports 
+                transactions={statsTransactions}
+                selectedMonth={reportMonth}
+                selectedYear={reportYear}
+                months={months}
+              />
+            </div>
+          )}
+
           {/* Stats Tab Period Selector */}
           {activeTab === 'stats' && (
             <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
@@ -448,9 +505,10 @@ const Index = () => {
             )}
 
             {activeTab === 'stats' && (
-              <div className="space-y-8">
-                {/* BUKU BESAR - AT THE TOP */}
-                <section className="space-y-6">
+              <div className="space-y-6">
+
+                {/* BUKU BESAR */}
+                <section className="rounded-xl border bg-card p-5 shadow-sm space-y-6">
                   <div className="relative">
                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
                     <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
@@ -470,11 +528,8 @@ const Index = () => {
                   />
                 </section>
 
-                {/* DIVIDER */}
-                <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
-
                 {/* ANALYTICS SECTION */}
-                <section className="space-y-6">
+                <section className="rounded-xl border bg-card p-5 shadow-sm space-y-6">
                   <div className="relative">
                     <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
                     <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
@@ -497,64 +552,6 @@ const Index = () => {
                     onDeleteTransaction={deleteTransaction}
                     selectedMonth={selectedMonth}
                     selectedYear={selectedYear}
-                  />
-                </section>
-
-                {/* DIVIDER */}
-                <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
-
-                {/* REPORTS SECTION */}
-                <section className="space-y-6">
-                  <div className="relative">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
-                    <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
-                      <FileText className="h-5 w-5 text-primary" />
-                      Laporan Bulanan
-                    </h2>
-                  </div>
-
-                  {/* Period Selector for Laporan */}
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-muted/30 p-4 rounded-xl border border-primary/10">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-primary" />
-                      <span className="text-sm font-semibold text-foreground">Periode Laporan: <span className="text-primary">{months[reportMonth]} {reportYear}</span></span>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Select value={reportMonth.toString()} onValueChange={(value) => setReportMonth(parseInt(value))}>
-                        <SelectTrigger className="w-[130px] h-9 text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {months.map((month, index) => (
-                            <SelectItem key={index} value={index.toString()}>
-                              {month}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
-                      <Select value={reportYear.toString()} onValueChange={(value) => setReportYear(parseInt(value))}>
-                        <SelectTrigger className="w-[90px] h-9 text-sm">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableYears.map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                              {year}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Monthly Report */}
-                  <MonthlyReports 
-                    transactions={statsTransactions}
-                    selectedMonth={reportMonth}
-                    selectedYear={reportYear}
-                    months={months}
                   />
                 </section>
               </div>
@@ -592,20 +589,6 @@ const Index = () => {
                     onTransfer={addTransfer}
                   />
                 </div>
-
-                {/* Security Section */}
-                <div className="rounded-lg border bg-card p-4 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-sm font-semibold">Keamanan</h3>
-                      <p className="text-xs text-muted-foreground">Kunci aplikasi dengan biometrik.</p>
-                    </div>
-                    <Switch checked={biometricEnabled} onCheckedChange={handleBiometricToggle} />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Saat aktif, aplikasi akan terkunci dan memerlukan verifikasi biometrik setiap dibuka.
-                  </p>
-                </div>
               </div>
             )}
 
@@ -635,6 +618,20 @@ const Index = () => {
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </Button>
                 </div>
+
+                {/* Security Section */}
+                <div className="rounded-lg border bg-card p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-semibold">Keamanan</h3>
+                      <p className="text-xs text-muted-foreground">Kunci aplikasi dengan biometrik.</p>
+                    </div>
+                    <Switch checked={biometricEnabled} onCheckedChange={handleBiometricToggle} />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Saat aktif, aplikasi akan terkunci dan memerlukan verifikasi biometrik setiap dibuka.
+                  </p>
+                </div>
               </div>
             )}
           </section>
@@ -653,16 +650,6 @@ const Index = () => {
             <h2 className="text-lg font-semibold">Aplikasi Terkunci</h2>
             <p className="text-sm text-muted-foreground">Gunakan biometrik untuk membuka.</p>
             <Button onClick={attemptBiometricUnlock} className="w-full">Buka dengan Biometrik</Button>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setBiometricEnabled(false);
-                setIsBiometricLocked(false);
-              }}
-              className="w-full"
-            >
-              Nonaktifkan Biometrik
-            </Button>
           </div>
         </div>
       )}
