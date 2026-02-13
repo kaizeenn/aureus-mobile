@@ -98,9 +98,10 @@ const AccountManager: React.FC<AccountManagerProps> = ({
         {/* Wallet List */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {wallets.map((wallet) => {
-            const walletTransactions = transactions.filter(
-              t => t.walletId === wallet.id || t.fromWalletId === wallet.id || t.toWalletId === wallet.id
-            );
+            const walletTransactions = transactions
+              .filter(t => t.walletId === wallet.id || t.fromWalletId === wallet.id || t.toWalletId === wallet.id)
+              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+              .slice(0, 3);
             
             return (
               <Collapsible key={wallet.id} className="rounded-2xl overflow-hidden border border-border/60">
@@ -157,24 +158,30 @@ const AccountManager: React.FC<AccountManagerProps> = ({
                       Aktivitas Terakhir
                     </div>
                     <div className="bg-muted/20 p-3 space-y-3 text-sm max-h-60 overflow-y-auto">
-                      {walletTransactions.map((trans) => (
-                        <div key={trans.id} className="flex items-center justify-between">
-                          <div className="min-w-0 pr-3">
-                            <p className="text-sm font-medium truncate text-foreground/90">
-                              {trans.description || trans.category}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(trans.date).toLocaleDateString('id-ID', {
-                                day: '2-digit',
-                                month: 'short',
-                              })}
-                            </p>
+                      {walletTransactions.map((trans) => {
+                        const isExpense = trans.type === 'expense';
+                        const isIncome = trans.type === 'income';
+                        return (
+                          <div key={trans.id} className="flex items-center justify-between">
+                            <div className="min-w-0 pr-3">
+                              <p className="text-sm font-medium truncate text-foreground/90">
+                                {trans.description || trans.category}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(trans.date).toLocaleDateString('id-ID', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                })}
+                              </p>
+                            </div>
+                            <span className={`text-sm font-semibold ${
+                              isExpense ? 'text-red-500' : isIncome ? 'text-green-500' : 'text-blue-500'
+                            }`}>
+                              {isExpense ? '-' : '+'}Rp{trans.amount.toLocaleString('id-ID')}
+                            </span>
                           </div>
-                          <span className={`text-sm font-semibold ${trans.amount < 0 ? 'text-red-500' : 'text-green-500'}`}>
-                            {trans.amount < 0 ? '-' : '+'}Rp{Math.abs(trans.amount).toLocaleString('id-ID')}
-                          </span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </CollapsibleContent>

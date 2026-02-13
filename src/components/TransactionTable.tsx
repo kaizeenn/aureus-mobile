@@ -164,7 +164,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
 
                          <div className="flex-1 min-w-0">
                              <div className="flex items-center gap-2 mb-1">
-                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-primary/20 bg-primary/5 text-foreground/70 font-normal">
+                                <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-primary/30 bg-background text-foreground font-medium">
                                     {transaction.category}
                                 </Badge>
                              </div>

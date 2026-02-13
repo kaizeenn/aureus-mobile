@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Mic, Calendar, DollarSign, Euro, JapaneseYen, PoundSterling, Bitcoin, Coins, CreditCard, Tags, HardDriveDownload, ChevronRight, BarChart3, FileText, Wallet as WalletIcon, Lock } from 'lucide-react';
+import { Plus, Mic, Calendar, DollarSign, Euro, JapaneseYen, PoundSterling, Bitcoin, Coins, CreditCard, Tags, HardDriveDownload, ChevronRight, BarChart3, FileText, Wallet as WalletIcon, Lock, Printer, ArrowLeft, Github, User } from 'lucide-react';
 import Header from '@/components/Header';
 import BottomNav, { NavTab } from '@/components/BottomNav';
 import TransactionForm from '@/components/TransactionForm';
@@ -40,7 +40,7 @@ const Index = () => {
   const [reportYear, setReportYear] = useState(new Date().getFullYear());
   const [isAllTime, setIsAllTime] = useState(false);
   const [activeTab, setActiveTab] = useState<NavTab>('home');
-  const [currentPage, setCurrentPage] = useState<'main' | 'categories'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'categories' | 'report'>('main');
   const [showBackupRestore, setShowBackupRestore] = useState(false);
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [isBiometricLocked, setIsBiometricLocked] = useState(false);
@@ -304,6 +304,138 @@ const Index = () => {
     );
   }
 
+  if (currentPage === 'report') {
+    return (
+      <div className="min-h-screen bg-background transition-colors duration-300 relative overflow-hidden font-sans selection:bg-primary selection:text-primary-foreground">
+        
+        {/* Background: Cartoony Money Pattern */}
+        <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+          {[
+            { Icon: DollarSign, top: '2%', delay: '0s', duration: '40s' },
+            { Icon: Bitcoin, top: '5%', delay: '12s', duration: '50s' },
+            { Icon: Euro, top: '8%', delay: '25s', duration: '45s' },
+            { Icon: JapaneseYen, top: '12%', delay: '5s', duration: '55s' },
+            { Icon: Coins, top: '15%', delay: '18s', duration: '38s' },
+            { Icon: PoundSterling, top: '18%', delay: '30s', duration: '48s' },
+            { Icon: DollarSign, top: '22%', delay: '8s', duration: '42s' },
+            { Icon: Euro, top: '25%', delay: '22s', duration: '52s' },
+            { Icon: Bitcoin, top: '28%', delay: '2s', duration: '35s' },
+            { Icon: JapaneseYen, top: '32%', delay: '15s', duration: '60s' },
+            { Icon: Coins, top: '35%', delay: '35s', duration: '46s' },
+            { Icon: PoundSterling, top: '38%', delay: '10s', duration: '50s' },
+            { Icon: DollarSign, top: '42%', delay: '20s', duration: '44s' },
+            { Icon: Euro, top: '45%', delay: '5s', duration: '58s' },
+            { Icon: Bitcoin, top: '48%', delay: '28s', duration: '40s' },
+            { Icon: JapaneseYen, top: '52%', delay: '12s', duration: '54s' },
+            { Icon: Coins, top: '55%', delay: '32s', duration: '48s' },
+            { Icon: PoundSterling, top: '58%', delay: '3s', duration: '36s' },
+            { Icon: DollarSign, top: '62%', delay: '18s', duration: '56s' },
+            { Icon: Euro, top: '65%', delay: '40s', duration: '42s' },
+            { Icon: Bitcoin, top: '68%', delay: '8s', duration: '50s' },
+            { Icon: JapaneseYen, top: '72%', delay: '25s', duration: '62s' },
+            { Icon: Coins, top: '75%', delay: '15s', duration: '45s' },
+            { Icon: PoundSterling, top: '78%', delay: '0s', duration: '55s' },
+            { Icon: DollarSign, top: '82%', delay: '10s', duration: '48s' },
+            { Icon: Euro, top: '85%', delay: '30s', duration: '38s' },
+            { Icon: Bitcoin, top: '88%', delay: '5s', duration: '52s' },
+            { Icon: JapaneseYen, top: '92%', delay: '22s', duration: '46s' },
+            { Icon: Coins, top: '95%', delay: '38s', duration: '60s' },
+            { Icon: PoundSterling, top: '98%', delay: '12s', duration: '40s' },
+          ].map((item, i) => (
+            <div
+              key={i}
+              className="absolute left-[-10%] opacity-20 dark:opacity-10 text-primary animate-drift"
+              style={{
+                top: item.top,
+                animationDelay: item.delay,
+                animationDuration: item.duration,
+              }}
+            >
+              <item.Icon strokeWidth={2.5} className="w-6 h-6 sm:w-10 sm:h-10" />
+            </div>
+          ))}
+        </div>
+
+        {/* Persistent Header */}
+        <div className="relative z-10">
+          <Header />
+        </div>
+
+        {/* Main Content - with bottom nav spacing */}
+        <main className="pb-nav custom-scrollbar relative z-10">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 space-y-6 py-6">
+            {/* Back Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setCurrentPage('main');
+                setActiveTab('stats');
+              }}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Kembali ke Statistik
+            </Button>
+
+            {/* Page Title */}
+            <div className="flex items-center gap-2">
+              <FileText className="h-6 w-6 text-primary" />
+              <h1 className="text-2xl font-bold">Laporan Bulanan</h1>
+            </div>
+
+            {/* Period Selector for Laporan */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-muted/30 p-4 rounded-xl border border-primary/10">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Periode Laporan: <span className="text-primary">{months[reportMonth]} {reportYear}</span></span>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <Select value={reportMonth.toString()} onValueChange={(value) => setReportMonth(parseInt(value))}>
+                  <SelectTrigger className="w-[130px] h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {months.map((month, index) => (
+                      <SelectItem key={index} value={index.toString()}>
+                        {month}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={reportYear.toString()} onValueChange={(value) => setReportYear(parseInt(value))}>
+                  <SelectTrigger className="w-[90px] h-9 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableYears.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Monthly Report */}
+            <MonthlyReports 
+              transactions={statsTransactions}
+              selectedMonth={reportMonth}
+              selectedYear={reportYear}
+              months={months}
+            />
+          </div>
+        </main>
+
+        {/* Bottom Navigation */}
+        <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background transition-colors duration-300 relative overflow-hidden font-sans selection:bg-primary selection:text-primary-foreground">
       
@@ -387,62 +519,7 @@ const Index = () => {
             </div>
           )}
 
-          {/* Laporan Bulanan - Stats Tab */}
-          {activeTab === 'stats' && (
-            <div className="space-y-6">
-              <div className="relative">
-                <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
-                <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  Laporan Bulanan
-                </h2>
-              </div>
 
-              {/* Period Selector for Laporan */}
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-muted/30 p-4 rounded-xl border border-primary/10">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-semibold text-foreground">Periode Laporan: <span className="text-primary">{months[reportMonth]} {reportYear}</span></span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <Select value={reportMonth.toString()} onValueChange={(value) => setReportMonth(parseInt(value))}>
-                    <SelectTrigger className="w-[130px] h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {months.map((month, index) => (
-                        <SelectItem key={index} value={index.toString()}>
-                          {month}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={reportYear.toString()} onValueChange={(value) => setReportYear(parseInt(value))}>
-                    <SelectTrigger className="w-[90px] h-9 text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableYears.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Monthly Report */}
-              <MonthlyReports 
-                transactions={statsTransactions}
-                selectedMonth={reportMonth}
-                selectedYear={reportYear}
-                months={months}
-              />
-            </div>
-          )}
 
           {/* Stats Tab Period Selector */}
           {activeTab === 'stats' && (
@@ -509,12 +586,23 @@ const Index = () => {
 
                 {/* BUKU BESAR */}
                 <section className="rounded-xl border bg-card p-5 shadow-sm space-y-6">
-                  <div className="relative">
-                    <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
-                    <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
-                      <WalletIcon className="h-5 w-5 text-primary" />
-                      Buku Besar
-                    </h2>
+                  <div className="flex items-center justify-between">
+                    <div className="relative">
+                      <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-lg blur opacity-30"></div>
+                      <h2 className="text-lg font-semibold relative text-foreground flex items-center gap-2">
+                        <WalletIcon className="h-5 w-5 text-primary" />
+                        Buku Besar
+                      </h2>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage('report')}
+                      className="gap-2"
+                    >
+                      <Printer className="h-4 w-4" />
+                      Cetak Laporan
+                    </Button>
                   </div>
 
                   {/* Buku Besar - Transaction Table (Monthly Transactions) */}
@@ -630,6 +718,32 @@ const Index = () => {
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Saat aktif, aplikasi akan terkunci dan memerlukan verifikasi biometrik setiap dibuka.
+                  </p>
+                </div>
+
+                {/* Credits Section */}
+                <div className="rounded-lg border bg-card p-4 space-y-3">
+                  <h3 className="text-sm font-semibold flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Developer
+                  </h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">👨‍💻</span>
+                      <span className="text-sm font-medium">Khairil Anwar</span>
+                    </div>
+                    <a
+                      href="https://github.com/kaizeenn"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 text-sm text-primary hover:underline"
+                    >
+                      <Github className="h-4 w-4" />
+                      @kaizeenn
+                    </a>
+                  </div>
+                  <p className="text-xs text-muted-foreground italic">
+                    Terima kasih telah menggunakan Aureus 💛
                   </p>
                 </div>
               </div>

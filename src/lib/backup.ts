@@ -1,16 +1,59 @@
 import { BackupData, Wallet, Transaction, Category } from '@/types';
+import { Capacitor } from '@capacitor/core';
+import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 
 export const exportToJson = (data: BackupData): string => {
   return JSON.stringify(data, null, 2);
 };
 
-export const downloadBackup = (data: BackupData, filename?: string) => {
+export const downloadBackup = async (data: BackupData, filename?: string) => {
   const jsonString = exportToJson(data);
+  const defaultFilename = filename || `aureus-backup-${new Date().toISOString().split('T')[0]}.json`;
+  
+  // Check if running on native platform (Android/iOS)
+  if (Capacitor.isNativePlatform()) {
+    try {
+      // Save to app's cache directory first
+      const result = await Filesystem.writeFile({
+        path: defaultFilename,
+        data: jsonString,
+        directory: Directory.Cache,
+        encoding: Encoding.UTF8,
+      });
+
+      // Get the file URI
+      const fileUri = result.uri;
+
+      // Use Share API to let user choose where to save
+      await Share.share({
+        title: 'Simpan Backup',
+        text: 'Backup data Aureus',
+        url: fileUri,
+        dialogTitle: 'Pilih lokasi penyimpanan',
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Error saving file:', error);
+      // Fallback to browser download if native fails
+      browserDownload(jsonString, defaultFilename);
+      return false;
+    }
+  } else {
+    // Web browser - use standard download
+    browserDownload(jsonString, defaultFilename);
+    return true;
+  }
+};
+
+// Helper function for browser download
+const browserDownload = (jsonString: string, filename: string) => {
   const blob = new Blob([jsonString], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename || `aureus-backup-${new Date().toISOString().split('T')[0]}.json`;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

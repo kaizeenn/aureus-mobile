@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PieChart as PieChartIcon, Layers, ArrowUp, ArrowDown, X } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { PieChart as PieChartIcon, Layers, ArrowUp, ArrowDown, X, Search } from 'lucide-react';
 import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from '@/components/ui/chart';
 import { PieChart, Pie, Cell, Legend } from 'recharts';
 import { Transaction, Wallet } from '@/types';
@@ -28,6 +29,7 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
 }) => {
   const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [detailTransaction, setDetailTransaction] = useState<Transaction | null>(null);
 
   // Filter transactions
@@ -51,11 +53,13 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
       value,
    }));
 
-   // Group transactions by category with type and category filter
+   // Group transactions by category with type, category, and search filter
    const filteredTransactions = monthlyTransactions.filter(transaction => {
       const matchesCategory = selectedCategory === 'all' || transaction.category === selectedCategory;
       const matchesType = selectedType === 'all' || transaction.type === selectedType;
-      return matchesCategory && matchesType;
+      const matchesSearch = searchQuery === '' || 
+         (transaction.description && transaction.description.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesCategory && matchesType && matchesSearch;
    });
 
    const transactionsByCategory = filteredTransactions.reduce((acc, transaction) => {
@@ -93,8 +97,8 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
        </div>
 
        {/* Filter Header */}
-       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-card/50 p-4 rounded-xl border border-primary/10">
-          <div className="flex gap-2 w-full sm:w-auto">
+       <div className="space-y-3 bg-card/50 p-4 rounded-xl border border-primary/10">
+          <div className="flex flex-col sm:flex-row gap-2">
              <Select value={selectedType} onValueChange={(v: any) => setSelectedType(v)}>
                 <SelectTrigger className="w-full sm:w-[160px] bg-background border-primary/20">
                    <SelectValue />
@@ -117,6 +121,18 @@ const TransactionByCategory: React.FC<TransactionByCategoryProps> = ({
                    ))}
                 </SelectContent>
              </Select>
+          </div>
+          
+          {/* Search Box */}
+          <div className="relative">
+             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+             <Input
+                type="text"
+                placeholder="Cari berdasarkan keterangan..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-background border-primary/20"
+             />
           </div>
        </div>
 

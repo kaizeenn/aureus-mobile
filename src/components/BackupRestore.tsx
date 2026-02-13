@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import { Wallet, Transaction, Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
-import { Download, Upload, Copy } from 'lucide-react';
+import { Download, Upload } from 'lucide-react';
 import { downloadBackup, createBackup, importFromJson } from '@/lib/backup';
 
 interface BackupRestoreProps {
@@ -20,24 +20,22 @@ const BackupRestore: React.FC<BackupRestoreProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleExport = () => {
+  const handleExport = async () => {
     const backup = createBackup(wallets, transactions, categories);
-    downloadBackup(backup);
-    toast({
-      title: 'Berhasil',
-      description: 'Data telah diunduh sebagai file JSON',
-    });
-  };
-
-  const handleCopyJson = () => {
-    const backup = createBackup(wallets, transactions, categories);
-    const jsonString = JSON.stringify(backup, null, 2);
-    navigator.clipboard.writeText(jsonString).then(() => {
+    const success = await downloadBackup(backup);
+    
+    if (success !== false) {
       toast({
         title: 'Berhasil',
-        description: 'Data backup telah disalin ke clipboard',
+        description: 'File backup siap disimpan. Pilih lokasi penyimpanan.',
       });
-    });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Gagal menyimpan file backup',
+      });
+    }
   };
 
   const handleImportClick = () => {
@@ -79,36 +77,6 @@ const BackupRestore: React.FC<BackupRestoreProps> = ({
     }
   };
 
-  const handlePasteJson = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      const backup = importFromJson(text);
-
-      if (!backup) {
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Format backup tidak valid',
-        });
-        return;
-      }
-
-      if (window.confirm('Apakah Anda yakin ingin mengembalikan data dari backup ini? Data saat ini akan diganti.')) {
-        onRestore(backup.wallets, backup.transactions, backup.categories);
-        toast({
-          title: 'Berhasil',
-          description: 'Data telah dipulihkan dari clipboard',
-        });
-      }
-    } catch {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Tidak dapat membaca clipboard',
-      });
-    }
-  };
-
   return (
     <div className="space-y-4">
       <div className="p-4 bg-muted rounded-lg">
@@ -119,37 +87,25 @@ const BackupRestore: React.FC<BackupRestoreProps> = ({
 
       <div className="space-y-2">
         <h3 className="font-semibold text-sm">Ekspor Data</h3>
-        <div className="space-y-2">
-          <Button onClick={handleExport} className="w-full gap-2" variant="default">
-            <Download className="h-4 w-4" />
-            Unduh sebagai JSON
-          </Button>
-          <Button onClick={handleCopyJson} className="w-full gap-2" variant="outline">
-            <Copy className="h-4 w-4" />
-            Salin ke Clipboard
-          </Button>
-        </div>
+        <Button onClick={handleExport} className="w-full gap-2" variant="default">
+          <Download className="h-4 w-4" />
+          Unduh sebagai JSON
+        </Button>
       </div>
 
       <div className="space-y-2">
         <h3 className="font-semibold text-sm">Impor Data</h3>
-        <div className="space-y-2">
-          <Button onClick={handleImportClick} className="w-full gap-2" variant="outline">
-            <Upload className="h-4 w-4" />
-            Pilih File JSON
-          </Button>
-          <Button onClick={handlePasteJson} className="w-full gap-2" variant="outline">
-            <Copy className="h-4 w-4" />
-            Paste dari Clipboard
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-        </div>
+        <Button onClick={handleImportClick} className="w-full gap-2" variant="outline">
+          <Upload className="h-4 w-4" />
+          Pilih File JSON
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
       </div>
 
       <div className="p-4 bg-yellow-50 dark:bg-yellow-950 rounded-lg border border-yellow-200 dark:border-yellow-800">
